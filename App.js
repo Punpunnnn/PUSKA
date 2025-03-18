@@ -1,20 +1,21 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
+import RootNavigator from './src/Navigation';
+import { NavigationContainer } from '@react-navigation/native';
+import BasketContextProvider from './src/context/BasketContext';
+import OrderContextProvider from './src/context/OrderContext';
+import AuthContextProvider from './src/context/AuthContext';
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+    <NavigationContainer>
+      <AuthContextProvider>
+      <BasketContextProvider>
+      <OrderContextProvider>
+      <RootNavigator/>
+      </OrderContextProvider>
+      </BasketContextProvider>
+      </AuthContextProvider>
       <StatusBar style="auto" />
-    </View>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
