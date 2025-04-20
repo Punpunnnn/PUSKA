@@ -10,7 +10,7 @@ const OrderScreen = () => {
     
     // Separate orders into ongoing and completed
     const ongoingOrders = orders.filter(order => order.order_status !== 'COMPLETED');
-    const completedOrders = orders.filter(order => order.order_status === 'COMPLETED');
+    const completedOrders = orders.filter(order => order.order_status === 'COMPLETED' && order.is_deleted === false);
 
     return (
         <View style={styles.container}>
@@ -59,7 +59,7 @@ const OrderScreen = () => {
                     renderItem={({ item }) => <OrderListItem order={item} />}
                     keyExtractor={item => item.id.toString()}
                     ListEmptyComponent={() => (
-                        <Text style={styles.emptyListText}>No ongoing orders</Text>
+                        <Text style={styles.emptyListText}>Tidak ada pesanan berlangsung</Text>
                     )}
                 />
             )}
@@ -70,7 +70,7 @@ const OrderScreen = () => {
                     renderItem={({ item }) => <OrderListItem order={item} />}
                     keyExtractor={item => item.id.toString()}
                     ListEmptyComponent={() => (
-                        <Text style={styles.emptyListText}>No order history</Text>
+                        <Text style={styles.emptyListText}>Tidak ada riwayat pesanan</Text>
                     )}
                 />
             )}
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         width: '100%',
-        backgroundColor: 'white',
+        backgroundColor: "#FAF9F6",
     },
     headerTitle: {
         fontSize: 24,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
       },
     headerLine: {
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        borderBottomColor: '#88362F',
     },
     headerContainer: {
         flexDirection: 'row',
@@ -123,14 +123,15 @@ const styles = StyleSheet.create({
         borderBottomColor: 'transparent',
     },
     activeTabButton: {
-        borderBottomColor: '#ff4500',
+        borderBottomColor: '#88362F'
     },
     tabText: {
         textAlign: 'center',
         color: 'gray',
     },
     activeTabText: {
-        color: '#ff4500',
+        color: '#88362F',
+        fontWeight: 'bold',
     },
     emptyListText: {
         padding: 16,

@@ -5,17 +5,21 @@ import { NavigationContainer } from '@react-navigation/native';
 import BasketContextProvider from './src/context/BasketContext';
 import OrderContextProvider from './src/context/OrderContext';
 import AuthContextProvider from './src/context/AuthContext';
+import RatingContextProvider from './src/context/RatingContext';
+import { linking } from './src/Navigation/linking';
 export default function App() {
   return (
-    <NavigationContainer>
-      <AuthContextProvider>
+    <AuthContextProvider>
+    <NavigationContainer linking={linking}>
       <BasketContextProvider>
       <OrderContextProvider>
+      <RatingContextProvider>
       <RootNavigator/>
+      </RatingContextProvider>
       </OrderContextProvider>
       </BasketContextProvider>
-      </AuthContextProvider>
       <StatusBar style="auto" />
     </NavigationContainer>
+    </AuthContextProvider>
   );
 }

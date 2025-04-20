@@ -29,16 +29,6 @@ const OrderDetailHeader = ({ order, onCancelOrder, onCompleteOrder, onPay }) => 
             <Text style={styles.buttonText}>Cancel Order</Text>
           </TouchableOpacity>
         )}
-
-        {order.order_status === 'READY_TO_PICKUP' && (
-          <TouchableOpacity 
-            style={styles.completeButton}
-            onPress={onCompleteOrder}
-          >
-            <Ionicons name="checkmark-circle" size={18} color="white" />
-            <Text style={styles.buttonText}>Complete Order</Text>
-          </TouchableOpacity>
-        )}
       </View>
     );
   };

@@ -13,24 +13,24 @@ const OrderContextProvider = ({ children }) => {
   const [notes, setNotes] = useState(''); // Add notes state
   const [paymentMethod, setPaymentMethod] = useState('CASH'); 
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select(`
-          *,
-          Restaurant:restaurant_id (
-              id,
-              title,
-              image
-          )
-      `)
-        .eq("user_id", dbUser.id);
+  const fetchOrders = async () => {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        Restaurant:restaurants_id (
+            id,
+            title,
+            image
+        )
+    `)
+      .eq("user_id", dbUser.id);
 
-      if (error) console.error("Error fetching orders:", error);
-      else setOrders(data);
-    };
+    if (error) console.error("Error fetching orders:", error);
+    else setOrders(data);
+  };
 
+  useEffect(() => {// Debugging
     fetchOrders();
   }, [dbUser]);
   
@@ -46,6 +46,7 @@ const OrderContextProvider = ({ children }) => {
 
   const createOrder = async (finalPrice) => {
     const safeDiscountedPrice = isNaN(finalPrice) ? totalPrice : finalPrice;
+    const usedCoins = totalPrice - safeDiscountedPrice;
 
     const orderStatus = paymentMethod === 'QRIS' ? 'PENDING' : 'NEW';
     const { data: newOrder, error: orderError } = await supabase
@@ -53,16 +54,18 @@ const OrderContextProvider = ({ children }) => {
       .insert([
         {
           user_id: dbUser.id,
-          restaurant_id: restaurant.id,
+          restaurants_id: restaurant.id,
           total: safeDiscountedPrice,
+          original_total: totalPrice,
           order_status: orderStatus,
           type: paymentMethod,
-          notes
+          notes,
+          used_coin: usedCoins,
         },
       ])
       .select(`
         *,
-        Restaurant:restaurant_id (
+        Restaurant:restaurants_id (
           id,
           title,
           image
@@ -106,34 +109,39 @@ const OrderContextProvider = ({ children }) => {
     return newOrder;
 };
 
-  const clearCompletedOrders = async () => {
-    try {
-      // Delete orders with status "COMPLETED"
-      const { error } = await supabase
-        .from("orders")
-        .delete()
-        .eq("user_id", dbUser.id)
-        .eq("order_status", "COMPLETED");
+const clearCompletedOrders = async () => {
+  try {
+    console.log("Menghapus pesanan selesai...");
 
-      if (error) {
-        console.error("Error deleting completed orders:", error);
-        return false;
-      }
+    const { error } = await supabase
+      .from("orders")
+      .update({is_deleted: true}) // Assuming you have a column to mark as deleted
+      .eq("user_id", dbUser.id)
+      .eq("order_status", "COMPLETED");
 
-      // Refresh orders list after deletion
-      await fetchOrders();
-      return true;
-    } catch (error) {
-      console.error("Exception when clearing completed orders:", error);
+
+    if (error) {
+      console.error("Error deleting completed orders:", error);
       return false;
     }
-  };
+
+    console.log("Berhasil menghapus, sekarang fetch ulang data...");
+    
+    await fetchOrders(); // Panggil ulang fetchOrders() langsung
+    
+    return true;
+  } catch (error) {
+    console.error("Exception when clearing completed orders:", error);
+    return false;
+  }
+};
+
   const getOrder = async (orderId) => {
         const { data: order, error: orderError } = await supabase
             .from("orders")
             .select(`
                 *,
-                Restaurant:restaurant_id (
+                Restaurant:restaurants_id (
                     id,
                     title,
                     image

@@ -10,28 +10,59 @@ export default function Homescreen() {
   const [filteredRestaurants, setFilteredRestaurants] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+ 
 
   useEffect(() => {
     // Fetch both restaurants and menu items
     const fetchData = async () => {
       setIsLoading(true);
+      try {
         const { data: restaurantsData, error: restaurantsError } = await supabase
           .from('restaurants')
           .select();
           
-        if (restaurantsError) throw restaurantsError;
+        if (restaurantsError) {
+          console.error("Restaurant fetch error:", restaurantsError);
+          setError("Failed to load restaurants");
+          setIsLoading(false);
+          return;
+        }
         
         // Fetch menu items
         const { data: menuData, error: menuError } = await supabase
-          .from('menus') // Replace with your actual menu table name
-          .select('id, name, price, restaurant_id'); // Select the fields you need
+          .from('menus')
+          .select('id, name, price, restaurants_id');
           
-        if (menuError) throw menuError;
+        if (menuError) {
+          console.error("Menu fetch error:", menuError);
+          setError("Failed to load menu items");
+          setIsLoading(false);
+          return;
+        }
         
-        setRestaurants(restaurantsData || []);
-        setFilteredRestaurants(restaurantsData || []);
-        setMenuItems(menuData || []);
+        // Ensure restaurantsData is valid before setting state
+        if (Array.isArray(restaurantsData)) {
+          setRestaurants(restaurantsData);
+          setFilteredRestaurants(restaurantsData);
+        } else {
+          console.error("Restaurant data is not an array:", restaurantsData);
+          setRestaurants([]);
+          setFilteredRestaurants([]);
+        }
+        
+        // Ensure menuData is valid before setting state
+        if (Array.isArray(menuData)) {
+          setMenuItems(menuData);
+        } else {
+          setMenuItems([]);
+        }
+      } catch (err) {
+        console.error("Unexpected error during data fetch:", err);
+        setError("An unexpected error occurred");
+      } finally {
         setIsLoading(false);
+      }
     };
     
     fetchData();
@@ -74,8 +105,10 @@ export default function Homescreen() {
     setFilteredRestaurants(uniqueResults);
   };
 
+
   return (
     <View style={styles.page}>
+      <View style={styles.headerContainer}> 
       {/* Header */}
       <Text style={styles.headerTitle}>Home</Text>
       
@@ -84,7 +117,7 @@ export default function Homescreen() {
         <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search for restaurants or food..."
+          placeholder="Cari kantin atau menu..."
           value={searchQuery}
           onChangeText={handleSearch}
         />
@@ -98,6 +131,7 @@ export default function Homescreen() {
           />
         ) : null}
       </View>
+      </View>
       
       {/* Results count when searching */}
       {searchQuery ? (
@@ -108,6 +142,7 @@ export default function Homescreen() {
       
       {/* Restaurant list */}
       <FlatList
+        contentContainerStyle={{ padding:16 }}
         data={filteredRestaurants}
         renderItem={({ item }) => <RestaurantItem restaurant={item} />}
         showsVerticalScrollIndicator={false}
@@ -115,8 +150,12 @@ export default function Homescreen() {
         ListEmptyComponent={
           isLoading ? (
             <Text style={styles.emptyText}>Loading...</Text>
+          ) : error ? (
+            <Text style={styles.errorText}>{error}</Text>
           ) : (
-            <Text style={styles.emptyText}>No restaurants found matching "{searchQuery}"</Text>
+            <Text style={styles.emptyText}>
+              {searchQuery ? `No restaurants found matching "${searchQuery}"` : "No restaurants available"}
+            </Text>
           )
         }
       />
@@ -127,17 +166,25 @@ export default function Homescreen() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-    paddingTop: 40, // Add padding to the top to ensure the header is visible
+    backgroundColor: "#FAF9F6",
+  },
+  headerContainer: {
+    backgroundColor: '#88362F',
+    borderBottomLeftRadius:8,
+    borderBottomRightRadius:8,
   },
   headerTitle: {
+    marginTop:40,
+    paddingLeft: 16,
+    paddingRight: 16,
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#333',
+    color: 'white',
   },
   searchContainer: {
+    width:"90%",
+    alignSelf:"center",
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f2f2f2',
@@ -157,8 +204,11 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   resultsText: {
+    paddingLeft: 16,
+    paddingTop: 10,
     marginBottom: 10,
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#666',
   },
   emptyText: {
@@ -166,5 +216,11 @@ const styles = StyleSheet.create({
     marginTop: 50,
     fontSize: 16,
     color: '#666',
+  },
+  errorText: {
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+    color: 'red',
   }
 });

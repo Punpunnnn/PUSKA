@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, Pressable, TextInput, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, Alert, FlatList, Pressable, TextInput, SafeAreaView, ScrollView, Image } from 'react-native';
 import BasketDishItem from '../../components/BasketDishItem';
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -6,9 +6,10 @@ import { useOrderContext } from '../../context/OrderContext';
 import { useBasketContext } from '../../context/BasketContext';
 import { useAuthContext } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { styles } from './style';
 
 const Basket = () => {
-  const { restaurant, basketDishes, totalPrice, clearBasket } = useBasketContext();
+  const { basketDishes, totalPrice, clearBasket } = useBasketContext();
   const { createOrder, notes, updateNotes, paymentMethod, updatePaymentMethod } = useOrderContext();
   const navigation = useNavigation();
   const { dbUser, setDbUser } = useAuthContext();
@@ -27,9 +28,20 @@ useFocusEffect(
 const discountedPrice = useMemo(() => Math.max(0, totalPrice - coinsToUse), [totalPrice, coinsToUse]);
 
 const toggleCoinUsage = () => {
+  if (totalPrice < 10000) {
+    Alert.alert('Tidak Bisa Menggunakan Koin', 'Minimal belanja Rp 10.000 untuk pakai koin.');
+    return;
+  }
+  
   setIsUsingCoins(prev => !prev);
-  setCoinsToUse(prev => (prev > 0 ? 0 : Math.min(userCoins, totalPrice)));
+  if (!isUsingCoins) {
+    setCoinsToUse(Math.min(userCoins, Math.floor(totalPrice * 0.1))); // Maksimal 10% dari total harga
+  } else {
+    // Jika toggle dimatikan, reset koin yang digunakan
+    setCoinsToUse(0);
+  }
 };
+
 
 const updatePuskacoin = async (newCoins) => {
   setUserCoins(newCoins);
@@ -54,21 +66,40 @@ const updatePuskacoin = async (newCoins) => {
   }
 };
 
-  const onCreateOrder = async () => {
-    if (isUsingCoins) await updatePuskacoin(userCoins - coinsToUse);
-    await createOrder(discountedPrice);
-    navigation.navigate(paymentMethod === 'QRIS' ? 'QRISPayment' : 'HomeOrders');
-  };
+const onCreateOrder = async () => {
+  if (totalPrice < 10000) {
+    Alert.alert('Minimal Belanja', 'Gunakan koin hanya untuk transaksi minimal Rp 10.000');
+    return;
+  }
+
+  const maxCoinAllowed = Math.floor(totalPrice * 0.1);
+  const coinsToUse = Math.min(userCoins, maxCoinAllowed);
+
+  if (isUsingCoins && coinsToUse > 0) {
+    await updatePuskacoin(userCoins - coinsToUse);
+  }
+
+  await createOrder(discountedPrice); // Pastikan discountedPrice = totalPrice - coinsToUse
+
+  navigation.reset({
+    index: 0,
+    routes: [{ name: paymentMethod === 'QRIS' ? 'QRISPayment' : 'Orders' }],
+  });
+};
+
 
   const onClearBasket = () => {
     clearBasket();
-    navigation.navigate('Home');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollableContent}>
-        <Text style={styles.name}>{restaurant?.title}</Text>
+        <Text style={styles.sectionTitle}>Daftar Pesanan</Text>
         <FlatList
           data={basketDishes}
           renderItem={({ item }) => <BasketDishItem basketDish={item} />}
@@ -89,11 +120,27 @@ const updatePuskacoin = async (newCoins) => {
         </View>
 
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>PUSKACoin (Saldo: {userCoins})</Text>
-          <Pressable style={[styles.toggleButton, isUsingCoins && styles.toggleActive]} onPress={toggleCoinUsage}>
-            <View style={[styles.toggleCircle, isUsingCoins && styles.toggleCircleActive]} />
-          </Pressable>
-        </View>
+  <Text style={styles.sectionTitle}>PUSKACoin</Text>
+    <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+      <Image style={{width: 48, height: 48}} source={require('../../../assets/puskaCoin.png')} />
+      <Text style={{marginLeft: 5, fontWeight: 'bold', fontSize: 16}}>Saldo: {userCoins}</Text>
+    </View>
+
+    <Pressable
+      style={[styles.toggleButton, isUsingCoins && styles.toggleActive]}
+      onPress={toggleCoinUsage}
+    >
+      <View style={[styles.toggleCircle, isUsingCoins && styles.toggleCircleActive]} />
+    </Pressable>
+  </View>
+  {totalPrice < 10000 && (
+  <Text style={{ color: 'gray', fontSize: 12 }}>
+    Belanja minimal Rp 10.000 untuk pakai koin
+  </Text>
+)}
+</View>
+
 
         <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>Notes</Text>
@@ -109,26 +156,5 @@ const updatePuskacoin = async (newCoins) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  scrollableContent: { flex: 1, paddingHorizontal: 16 },
-  name: { fontSize: 24, fontWeight: 'bold', marginVertical: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginTop: 16 },
-  sectionContainer: { marginBottom: 20 },
-  paymentOption: { padding: 12, borderRadius: 8, backgroundColor: '#f0f0f0', marginVertical: 4, alignItems: 'center' },
-  selectedPayment: { backgroundColor: '#4CAF50', color: 'white' },
-  toggleButton: { width: 50, height: 28, borderRadius: 14, backgroundColor: '#e0e0e0', padding: 2 },
-  toggleActive: { backgroundColor: '#4caf50' },
-  toggleCircle: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'white' },
-  toggleCircleActive: { transform: [{ translateX: 22 }] },
-  coinInput: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 8, fontSize: 16, textAlign: 'center' },
-  notesInput: { borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 12, textAlignVertical: 'top' },
-  footer: { borderTopWidth: 1, borderTopColor: '#e0e0e0', padding: 16 },
-  totalPrice: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  buttonyes: { backgroundColor: '#4CAF50', padding: 16, alignItems: 'center', marginBottom: 8, borderRadius: 4 },
-  buttonno: { backgroundColor: '#f44336', padding: 16, alignItems: 'center',borderRadius: 4},
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-});
 
 export default Basket;

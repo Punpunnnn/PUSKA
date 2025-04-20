@@ -1,28 +1,41 @@
 // Signup.js
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { useAuth } from '../../components/auth';
 import { useNavigation } from '@react-navigation/native';
 
 const Signup = () => {
   const { loading, signUpWithEmail } = useAuth();
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation(); // Get the navigation object
 
   const handleSignUp = async () => {
-    console.log('Attempting to sign up with:', email, password);
-    const error = await signUpWithEmail(email, password);
+    const error = await signUpWithEmail(username,email, password);
+  
     if (!error) {
-      console.log('Sign up successful, navigating to Home');
-      navigation.navigate('Hometab'); // Navigate to Home on successful sign-up
+      setTimeout(() => {
+        Alert.alert(
+          'Registrasi Berhasil!',
+          'Selamat datang di PUSKA!'
+        );
+      }, 500);
     } else {
-      console.log('Sign up failed:', error);
+      Alert.alert('Registrasi Gagal', error.message || 'Terjadi kesalahan saat registrasi.');
     }
   };
 
   return (
     <View style={styles.container}>
+      <TextInput
+        placeholder="Username"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+        keyboardType="default"
+        style={styles.input}
+      />
       <TextInput
         placeholder="Email"
         value={email}

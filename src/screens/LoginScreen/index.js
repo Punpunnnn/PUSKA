@@ -17,8 +17,6 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Login Error', error.message); // Show error message
     } else {
       console.log('Login success:', data.user.email);
-      // Navigate to the home screen or another screen after successful login
-      navigation.replace('Hometab'); // Replace with your home tab screen name
     }
   };
 
@@ -40,6 +38,12 @@ const LoginScreen = ({ navigation }) => {
       <Button title="Login" onPress={handleLogin} />
       <Text style={styles.link} onPress={() => navigation.navigate('Signup')}>
         Don't have an account? Sign up
+      </Text>
+      <Text style={styles.link} onPress={() => navigation.navigate('ForgotPassword')}>
+        Forgot Password?
+      </Text>
+      <Text style={styles.link} onPress={() => navigation.navigate('ManualResetPassword')}>
+        Manual Reset Password
       </Text>
     </View>
   );

@@ -17,26 +17,25 @@ const QRISPaymentScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { orderId: routeOrderId, totalAmount: routeTotalAmount } = route.params || {};
-  
+
   const [orderId, setOrderId] = useState(routeOrderId || '');
   const [totalAmount, setTotalAmount] = useState(routeTotalAmount || '');
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
   const [orderStatus, setOrderStatus] = useState('PENDING');
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [loading, setLoading] = useState(true);
-  
-  // Fetch order details from Supabase
+
   useEffect(() => {
     const fetchOrderDetails = async () => {
       setLoading(true);
-      
+
       if (routeOrderId) {
         const { data } = await supabase
           .from('orders')
           .select('id, total, order_status')
           .eq('id', routeOrderId)
           .single();
-          
+
         if (data) {
           setTotalAmount(data.total.toLocaleString());
           setOrderStatus(data.order_status);
@@ -49,51 +48,47 @@ const QRISPaymentScreen = () => {
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
-          
+
         if (data) {
           setOrderId(data.id);
           setTotalAmount(data.total.toLocaleString());
           setOrderStatus(data.order_status);
         }
       }
-      
+
       setLoading(false);
     };
-    
+
     fetchOrderDetails();
   }, [routeOrderId]);
-  
-  // Set up the deep link handler for QR code scanning
+
   useEffect(() => {
     const handleDeepLink = async ({ url }) => {
       if (url && url.includes('paymentSuccess') && url.includes(`orderId=${orderId}`)) {
-        // Check if this is an auto-confirmation link
         if (url.includes('autoConfirm=true')) {
           await handlePaymentCallback();
         }
       }
     };
-  
+
     const subscription = Linking.addEventListener('url', handleDeepLink);
-    
+
     Linking.getInitialURL().then(url => {
       if (url) handleDeepLink({ url });
     });
-  
+
     return () => subscription.remove();
   }, [orderId]);
-  
-  // Generate QR code content that includes a deep link
+
   const generateQRISContent = () => {
     return `yourapp://payment/autoProcess?orderId=${orderId}&paymentSuccess=true&autoConfirm=true`;
   };
-  
+
   const qrContent = generateQRISContent();
 
-  // Set up real-time subscription to order status updates
   useEffect(() => {
     if (!orderId) return;
-    
+
     const subscription = supabase
       .channel(`order-${orderId}`)
       .on('postgres_changes', {
@@ -110,23 +105,22 @@ const QRISPaymentScreen = () => {
         }
       })
       .subscribe();
-      
+
     return () => {
       supabase.removeChannel(subscription);
     };
   }, [orderId, orderStatus]);
 
-  // Poll for payment status as a backup to real-time updates
   useEffect(() => {
     if (!orderId || orderStatus !== 'PENDING') return;
-    
+
     const checkPaymentStatus = async () => {
       const { data } = await supabase
         .from('orders')
         .select('order_status')
         .eq('id', orderId)
         .single();
-        
+
       if (data && data.order_status !== orderStatus) {
         setOrderStatus(data.order_status);
         if (data.order_status === 'NEW' || data.order_status === 'PAID') {
@@ -134,12 +128,11 @@ const QRISPaymentScreen = () => {
         }
       }
     };
-    
+
     const statusInterval = setInterval(checkPaymentStatus, 5000);
     return () => clearInterval(statusInterval);
   }, [orderId, orderStatus]);
 
-  // Countdown timer
   useEffect(() => {
     if (orderStatus === 'PENDING') {
       const countdownTimer = setInterval(() => {
@@ -164,36 +157,35 @@ const QRISPaymentScreen = () => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Handle payment expiration
   const handlePaymentExpired = async () => {
     if (!orderId) return;
-    
+
     await supabase
       .from('orders')
       .update({ order_status: 'EXPIRED' })
       .eq('id', orderId);
-      
+
     setOrderStatus('EXPIRED');
     navigation.navigate('Orders');
   };
   const handlePaymentSuccess = async (status) => {
     setPaymentComplete(true);
-    
+
     setTimeout(() => {
-      navigation.navigate('Orders', { 
-        orderId, 
-        order_status: status || 'NEW' 
+      navigation.navigate('Orders', {
+        orderId,
+        order_status: status || 'NEW',
       });
     }, 2000);
   };
   const handlePaymentCallback = async () => {
     if (!orderId) return;
-    
+
     await supabase
       .from('orders')
       .update({ order_status: 'NEW' })
       .eq('id', orderId);
-      
+
     setOrderStatus('NEW');
     handlePaymentSuccess('NEW');
   };
@@ -209,28 +201,28 @@ const QRISPaymentScreen = () => {
         {!paymentComplete ? (
           <View style={styles.qrContainer}>
             <Text style={styles.qrTitle}>Scan this QR code to complete your payment</Text>
-            
+
             <View style={styles.qrCode}>
               <QRCode
                 value={qrContent}
-                size={200}
-                backgroundColor="white"
-                color="black"
+                size={250}
+                backgroundColor="#ffffff"
+                color="#000000"
               />
             </View>
-            
+
             <View style={styles.amountContainer}>
               <Text style={styles.amountLabel}>Total Amount:</Text>
               <Text style={styles.amount}>Rp {totalAmount}</Text>
             </View>
-            
+
             <View style={styles.timerContainer}>
               <Text style={styles.timerLabel}>Time remaining:</Text>
               <Text style={[styles.timer, timeLeft < 60 && styles.timerWarning]}>
                 {formatTime(timeLeft)}
               </Text>
             </View>
-            
+
             <View style={styles.instructions}>
               <Text style={styles.instructionsTitle}>How to pay:</Text>
               <Text style={styles.instructionItem}>1. Open your mobile banking or e-wallet app</Text>
@@ -239,15 +231,7 @@ const QRISPaymentScreen = () => {
               <Text style={styles.instructionItem}>4. Confirm the payment amount</Text>
               <Text style={styles.instructionItem}>5. Complete the payment process in your app</Text>
             </View>
-            
-            {__DEV__ && (
-              <TouchableOpacity 
-                style={styles.testButton} 
-                onPress={handlePaymentCallback}
-              >
-                <Text style={styles.testButtonText}>Test Payment Callback</Text>
-              </TouchableOpacity>
-            )}
+
           </View>
         ) : (
           <View style={styles.successContainer}>
@@ -258,12 +242,12 @@ const QRISPaymentScreen = () => {
             <Text style={styles.orderIdText}>Order ID: #{orderId}</Text>
           </View>
         )}
-        
+
         <View style={styles.statusContainer}>
           <Text style={styles.statusLabel}>Order Status:</Text>
           <Text style={[
-            styles.statusValue, 
-            orderStatus === 'New' ? styles.statusNew : styles.statusPending
+            styles.statusValue,
+            orderStatus === 'NEW' ? styles.statusNew : styles.statusPending
           ]}>
             {orderStatus}
           </Text>
@@ -276,7 +260,7 @@ const QRISPaymentScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f7f7f7',
   },
   scrollContent: {
     padding: 20,
@@ -285,39 +269,39 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#4CAF50',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#555',
     marginTop: 5,
   },
   qrContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6,
   },
   qrTitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#333',
-    marginBottom: 20,
+    marginBottom: 15,
     textAlign: 'center',
   },
   qrCode: {
     padding: 15,
-    backgroundColor: '#fff',
-    borderWidth: 1,
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
     borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 20,
+    borderRadius: 10,
+    marginBottom: 15,
   },
   amountContainer: {
     flexDirection: 'row',
@@ -325,12 +309,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   amountLabel: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    color: '#777',
     marginRight: 5,
   },
   amount: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -340,17 +324,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   timerLabel: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    color: '#777',
     marginRight: 5,
   },
   timer: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
   },
   timerWarning: {
-    color: '#ff4d4f',
+    color: '#FF4D4F',
   },
   instructions: {
     backgroundColor: '#f9f9f9',
@@ -360,51 +344,38 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   instructionsTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 10,
   },
   instructionItem: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 16,
+    color: '#555',
     marginBottom: 8,
   },
-  testButton: {
-    backgroundColor: '#722ed1',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    width: '100%',
-  },
-  testButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
   successContainer: {
-    backgroundColor: '#f6ffed',
-    borderColor: '#b7eb8f',
-    borderWidth: 1,
+    backgroundColor: '#E8F7E4',
+    borderColor: '#66BB6A',
+    borderWidth: 2,
     borderRadius: 8,
     padding: 20,
     marginVertical: 20,
   },
   successTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#52c41a',
+    color: '#4CAF50',
     marginBottom: 10,
   },
   successText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#333',
     marginBottom: 10,
   },
   orderIdText: {
     fontSize: 14,
-    color: '#666',
+    color: '#555',
   },
   statusContainer: {
     flexDirection: 'row',
@@ -415,19 +386,19 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   statusLabel: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#666',
     marginRight: 5,
   },
   statusValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   statusPending: {
-    color: '#faad14',
+    color: '#FF9800',
   },
   statusNew: {
-    color: '#52c41a',
+    color: '#4CAF50',
   },
 });
 

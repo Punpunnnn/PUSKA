@@ -41,7 +41,7 @@ const RestaurantDetailScreen = () => {
             const { data: menuData, error: menuError } = await supabase
                 .from('menus')
                 .select()
-                .eq('restaurant_id', id);
+                .eq('restaurants_id', id);
 
             if (menuError) {
                 console.error("Error fetching menus:", menuError);
@@ -49,6 +49,7 @@ const RestaurantDetailScreen = () => {
             }
 
             setMenus(menuData);
+            
             
             // Organize menus by category
             const menuByCategory = menuData.reduce((acc, menu) => {
@@ -78,6 +79,47 @@ const RestaurantDetailScreen = () => {
     }, [fetchRestaurantAndMenus]);
 
     useEffect(() => {
+      const menuChannel = supabase
+        .channel('realtime:menus')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // bisa diganti 'UPDATE' kalau hanya mau saat update
+            schema: 'public',
+            table: 'menus',
+            filter: `restaurants_id=eq.${id}`,
+          },
+          (payload) => {
+            console.log('📦 Menu changed:', payload);
+            fetchRestaurantAndMenus(); // refetch menus
+          }
+        )
+        .subscribe();
+    
+      const restoChannel = supabase
+        .channel('realtime:restaurants')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'restaurants',
+            filter: `id=eq.${id}`,
+          },
+          (payload) => {
+            console.log('🏪 Restoran changed:', payload);
+            fetchRestaurantAndMenus(); // refetch resto
+          }
+        )
+        .subscribe();
+    
+      return () => {
+        supabase.removeChannel(menuChannel);
+        supabase.removeChannel(restoChannel);
+      };
+    }, [id, fetchRestaurantAndMenus]);
+
+    useEffect(() => {
         setBasketRestaurant(restaurant);
     }, [restaurant, setBasketRestaurant]);
 
@@ -86,50 +128,59 @@ const RestaurantDetailScreen = () => {
     }
 
     return (
-        <View style={styles.container}>
-          <FlatList
-            ListHeaderComponent={() => <Header restaurant={restaurant} />}
-            data={categories}
-            renderItem={({ item: category }) => (
-              <View style={styles.categoryContainer}>
-                <Text style={styles.categoryTitle}>{category.title}</Text>
-                {category.data.map((menuItem) => (
-                  <DishListItem key={menuItem.id} menus={menuItem} />
-                ))}
-              </View>
-            )}
-            keyExtractor={(item) => item.title}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }} // Increased padding to make room for button
-          />
-          
-          <Ionicons 
-            onPress={() => navigation.goBack()} 
-            name="arrow-back-circle" 
-            size={45} 
-            color="white" 
-            style={styles.IconContainer} 
-          />
-          
-          {basket && (
-            <View style={styles.buttonContainer}>
-              <Pressable
-                onPress={() => navigation.navigate("Basket")}
-                style={styles.button}
-              >
-                <Text style={styles.buttonText}>
-                  Buka Keranjang ({basketDishes.length})
-                </Text>
-              </Pressable>
-            </View>
-          )}
+      <View style={styles.container}>
+        <FlatList
+        ListHeaderComponent={() => <Header restaurant={restaurant} />}
+        data={categories}
+        renderItem={({ item: category }) => (
+          <View style={styles.categoryContainer}>
+          <Text style={styles.categoryTitle}>{category.title}</Text>
+          {category.data.map((menuItem) => (
+            <DishListItem key={menuItem.id} menus={menuItem} restaurant={restaurant} />
+          ))}
+          </View>
+        )}
+        keyExtractor={(item) => item.title}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }} // Increased padding to make room for button
+        />
+        
+        <Ionicons 
+        onPress={() => navigation.goBack()} 
+        name="arrow-back-circle" 
+        size={45} 
+        color="white" 
+        style={styles.IconContainer} 
+        />
+        
+        {basket && (
+        <View style={styles.buttonContainer}>
+          <Pressable
+          onPress={() => {
+            if (basketDishes.length > 0) {
+            navigation.navigate("Basket", {restaurantTitle: restaurant.title});
+            }
+          }}
+          style={[
+            styles.button,
+            basketDishes.length === 0 && { backgroundColor: "gray" }
+          ]}
+          disabled={basketDishes.length === 0}
+          >
+          <Text style={styles.buttonText}>
+            Buka Keranjang ({basketDishes.length})
+          </Text>
+          </Pressable>
         </View>
+        )}
+      </View>
       );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: "#FAF9F6",
         borderBottomColor: "lightgray",
         borderBottomWidth: 1,
     },
@@ -181,7 +232,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         paddingHorizontal: 10,
         paddingVertical: 10,
-        backgroundColor: '#f2f2f2',
     }
 });
 

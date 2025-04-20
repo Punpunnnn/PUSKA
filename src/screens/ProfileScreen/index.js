@@ -14,13 +14,14 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuthContext } from '../../context/AuthContext';
 
 const Profile = () => {
+  const { signOut} = useAuthContext();
   const [user, setUser] = useState(null);
   const [fullName, setFullName] = useState('');
   const [coins, setCoins] = useState(0);
   const [loading, setLoading] = useState(false);
-  const navigation = useNavigation();
 
   useEffect(() => {
     fetchUserProfile();
@@ -69,17 +70,19 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await signOut();
+      console.log('Sign out success');
       if (error) throw error;
-      navigation.replace('Login');
+      // Tidak perlu navigation.reset
     } catch (error) {
       Alert.alert('Error', 'Failed to sign out');
-      console.error(error);
+      console.error('Error during sign out:', error);
     }
   };
-
+  
   return (
     <SafeAreaView style={styles.safeArea}>
+      <Text style={styles.headerTitle}>Profile</Text>
       <StatusBar barStyle="dark-content" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
@@ -94,7 +97,7 @@ const Profile = () => {
                 
                 <View style={styles.avatarShadow}>
                   <View style={styles.avatarContainer}>
-                    <Ionicons name="person-circle" size={150} color="#8a2be2" />
+                    <Ionicons name="person-circle" size={150} color="gray" />
                   </View>
                 </View>
                 
@@ -106,7 +109,7 @@ const Profile = () => {
                 <View style={styles.coinsContainer}>
                   <View style={styles.coinLabelContainer}>
                     <Ionicons name="wallet-outline" size={24} color="#666" />
-                    <Text style={styles.coinsLabel}>Your Coins</Text>
+                    <Text style={styles.coinsLabel}>PUSKACoin</Text>
                   </View>
                   <View style={styles.coinValueWrapper}>
                     <Text style={styles.coinsValue}>{coins}</Text>
@@ -157,7 +160,14 @@ const Profile = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#FAF9F6",
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 25,
+    color: '#333',
+    padding: 16,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -238,7 +248,7 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
   },
   coinValueWrapper: {
-    backgroundColor: '#8a2be2',
+    backgroundColor: '#6f8b43',
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 25,
@@ -270,7 +280,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   button: {
-    backgroundColor: '#8a2be2',
+    backgroundColor: '#6f8b43',
     borderRadius: 10,
     paddingVertical: 15,
     paddingHorizontal: 20,
@@ -279,7 +289,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonPressed: {
-    backgroundColor: '#7823bf',
+    backgroundColor: '#2f5b00',
     transform: [{ scale: 0.98 }],
   },
   buttonText: {
@@ -291,7 +301,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   logoutButton: {
-    backgroundColor: '#ff3b30',
+    backgroundColor: 'red',
     borderRadius: 10,
     paddingVertical: 15,
     paddingHorizontal: 20,

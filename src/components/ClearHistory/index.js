@@ -59,7 +59,7 @@ const ClearHistoryButton = () => {
 
 const styles = StyleSheet.create({
   clearButton: {
-    padding: 8,
+    paddingBottom: 10,
   },
   pressed: {
     opacity: 0.7,

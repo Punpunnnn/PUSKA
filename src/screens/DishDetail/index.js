@@ -120,11 +120,15 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginVertical: 10,
+    paddingLeft: 10,
   },
   description: {
+    paddingLeft: 10,
     color: 'gray',
   },
   price: {
+    paddingLeft: 10,
+    color: 'green',
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 10,
@@ -157,7 +161,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
   button: {
-    backgroundColor: '#8B0000',
+    backgroundColor: '#88362F',
     marginTop: 10,
     padding: 15,
     alignItems: 'center',
