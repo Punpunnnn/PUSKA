@@ -7,8 +7,6 @@ import ClearHistoryButton from '../../components/ClearHistory';
 const OrderScreen = () => {
     const { orders } = useOrderContext();
     const [activeTab, setActiveTab] = useState('ongoing');
-    
-    // Separate orders into ongoing and completed
     const ongoingOrders = orders.filter(order => order.order_status !== 'COMPLETED');
     const completedOrders = orders.filter(order => order.order_status === 'COMPLETED' && order.is_deleted === false);
 

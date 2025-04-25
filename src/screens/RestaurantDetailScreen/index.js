@@ -1,178 +1,143 @@
 import {View, FlatList, StyleSheet, ActivityIndicator, Pressable, Text} from 'react-native';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import DishListItem from '../../components/DishListItem';
 import Header from './header';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { useBasketContext } from '../../context/BasketContext';
+import useRealtimeMenus from '../../hooks/useRealtimeMenus';
 
 const RestaurantDetailScreen = () => {
     const [restaurant, setRestaurant] = useState(null);
-    const [menus, setMenus] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const {setRestaurant: setBasketRestaurant, basket, basketDishes} = useBasketContext();
-    const route = useRoute();
-    const navigation = useNavigation();
-    const id = route.params.id;
+  const [menus, setMenus] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const { setRestaurant: setBasketRestaurant, basket, basketDishes } = useBasketContext();
+  const [menuRatings, setMenuRatings] = useState([]);
+  const route = useRoute();
+  const navigation = useNavigation();
+  const id = route.params.id;
 
-    const fetchRestaurantAndMenus = useCallback(async () => {
-        if (!id) {
-            return;
-        }
-        // Reset basket restaurant
-        setBasketRestaurant(null);
-        try {
-            // Fetch restaurant
-            const { data: restaurantData, error: restaurantError } = await supabase
-                .from('restaurants')
-                .select()
-                .eq('id', id)
-                .single(); // Use .single() to get a single object
+  useEffect(() => {
+    const fetchMenuRatings = async () => {
+      const { data, error } = await supabase
+        .from('avg_menu_ratings')
+        .select('*');
+  
+      if (error) {
+        console.error('Gagal fetch avg menu ratings:', error.message);
+      } else {
+        setMenuRatings(data);
+      }
+    };
+  
+    fetchMenuRatings();
+  }, []);
+  
+  const ratingsLookup = useMemo(() => {
+    const lookup = {};
+    menuRatings.forEach((rating) => {
+      lookup[rating.menus_id] = rating.avg_rating;
+    });
+    return lookup;
+  }, [menuRatings]);   
 
-            if (restaurantError) {
-                console.error("Error fetching restaurant:", restaurantError);
-                return;
-            }
+  const fetchRestaurant = useCallback(async () => {
+    if (!id) return;
+    setBasketRestaurant(null);
 
-            setRestaurant(restaurantData);
+    const { data, error } = await supabase
+      .from('restaurants')
+      .select()
+      .eq('id', id)
+      .single();
 
-            // Fetch menus
-            const { data: menuData, error: menuError } = await supabase
-                .from('menus')
-                .select()
-                .eq('restaurants_id', id);
-
-            if (menuError) {
-                console.error("Error fetching menus:", menuError);
-                return;
-            }
-
-            setMenus(menuData);
-            
-            
-            // Organize menus by category
-            const menuByCategory = menuData.reduce((acc, menu) => {
-                const category = menu.category || "Other";
-                if (!acc[category]) {
-                    acc[category] = [];
-                }
-                acc[category].push(menu);
-                return acc;
-            }, {});
-            
-            // Create categories array for the section list
-            const categoriesArray = Object.keys(menuByCategory).map(title => ({
-                title,
-                data: menuByCategory[title]
-            }));
-            
-            setCategories(categoriesArray);
-            
-        } catch (error) {
-            console.error("Error fetching data:", error);
-        }
-    }, [id, setBasketRestaurant]);
-
-    useEffect(() => {
-        fetchRestaurantAndMenus();
-    }, [fetchRestaurantAndMenus]);
-
-    useEffect(() => {
-      const menuChannel = supabase
-        .channel('realtime:menus')
-        .on(
-          'postgres_changes',
-          {
-            event: '*', // bisa diganti 'UPDATE' kalau hanya mau saat update
-            schema: 'public',
-            table: 'menus',
-            filter: `restaurants_id=eq.${id}`,
-          },
-          (payload) => {
-            console.log('📦 Menu changed:', payload);
-            fetchRestaurantAndMenus(); // refetch menus
-          }
-        )
-        .subscribe();
-    
-      const restoChannel = supabase
-        .channel('realtime:restaurants')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'restaurants',
-            filter: `id=eq.${id}`,
-          },
-          (payload) => {
-            console.log('🏪 Restoran changed:', payload);
-            fetchRestaurantAndMenus(); // refetch resto
-          }
-        )
-        .subscribe();
-    
-      return () => {
-        supabase.removeChannel(menuChannel);
-        supabase.removeChannel(restoChannel);
-      };
-    }, [id, fetchRestaurantAndMenus]);
-
-    useEffect(() => {
-        setBasketRestaurant(restaurant);
-    }, [restaurant, setBasketRestaurant]);
-
-    if (!restaurant) {
-        return <ActivityIndicator size="large" color="black" />;
+    if (error) {
+      console.error("Error fetching restaurant:", error);
+      return;
     }
+
+    setRestaurant(data);
+  }, [id, setBasketRestaurant]);
+
+  // Setup realtime menus listener
+  useRealtimeMenus(setMenus, id);
+
+  // Organize menus into categories on update
+  useEffect(() => {
+    const categorized = menus.reduce((acc, menu) => {
+      const category = menu.category || "Other";
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(menu);
+      return acc;
+    }, {});
+
+    const categoriesArray = Object.keys(categorized).map(title => ({
+      title,
+      data: categorized[title],
+    }));
+
+    setCategories(categoriesArray);
+  }, [menus]);
+
+  // Fetch restaurant data on mount
+  useEffect(() => {
+    fetchRestaurant();
+  }, [fetchRestaurant]);
+
+  // Set restaurant into basket context
+  useEffect(() => {
+    setBasketRestaurant(restaurant);
+  }, [restaurant, setBasketRestaurant]);
+
+  if (!restaurant) {
+    return <ActivityIndicator size="large" color="black" />;
+  }
 
     return (
       <View style={styles.container}>
-        <FlatList
-        ListHeaderComponent={() => <Header restaurant={restaurant} />}
-        data={categories}
-        renderItem={({ item: category }) => (
-          <View style={styles.categoryContainer}>
-          <Text style={styles.categoryTitle}>{category.title}</Text>
-          {category.data.map((menuItem) => (
-            <DishListItem key={menuItem.id} menus={menuItem} restaurant={restaurant} />
-          ))}
-          </View>
-        )}
-        keyExtractor={(item) => item.title}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }} // Increased padding to make room for button
-        />
-        
-        <Ionicons 
-        onPress={() => navigation.goBack()} 
-        name="arrow-back-circle" 
-        size={45} 
-        color="white" 
-        style={styles.IconContainer} 
-        />
-        
-        {basket && (
-        <View style={styles.buttonContainer}>
-          <Pressable
-          onPress={() => {
-            if (basketDishes.length > 0) {
-            navigation.navigate("Basket", {restaurantTitle: restaurant.title});
-            }
-          }}
-          style={[
-            styles.button,
-            basketDishes.length === 0 && { backgroundColor: "gray" }
-          ]}
-          disabled={basketDishes.length === 0}
-          >
-          <Text style={styles.buttonText}>
-            Buka Keranjang ({basketDishes.length})
-          </Text>
-          </Pressable>
+      <FlatList
+      ListHeaderComponent={() => <Header restaurant={restaurant} />}
+      data={categories}
+      renderItem={({ item: category }) => (
+        <View style={styles.categoryContainer}>
+        <Text style={styles.categoryTitle}>{category.title}</Text>
+        {category.data.map((menuItem) => (
+        <DishListItem key={menuItem.id} menus={menuItem} restaurant={restaurant} rating={ratingsLookup[menuItem.id] ?? null}/>
+        ))}
         </View>
-        )}
+      )}
+      keyExtractor={(item) => item.title}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 100 }} // Increased padding to make room for button
+      />
+      
+      <Ionicons 
+      onPress={() => navigation.goBack()} 
+      name="arrow-back-circle" 
+      size={45} 
+      color="white" 
+      style={styles.IconContainer} 
+      />
+      
+      <View style={styles.buttonContainer}>
+        <Pressable
+        onPress={() => {
+        if (basketDishes.length > 0) {
+          navigation.navigate("Basket", {restaurantTitle: restaurant.title});
+        }
+        }}
+        style={[
+        styles.button,
+        ...(basketDishes.length === 0 ? [{ backgroundColor: "gray" }] : [])
+        ]}
+        disabled={basketDishes.length === 0}
+        >
+        <Text style={styles.buttonText}>
+        Buka Keranjang ({basketDishes.length})
+        </Text>
+        </Pressable>
+      </View>
       </View>
       );
 };
@@ -230,7 +195,7 @@ const styles = StyleSheet.create({
     categoryTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        paddingHorizontal: 10,
+        paddingHorizontal: 16,
         paddingVertical: 10,
     }
 });

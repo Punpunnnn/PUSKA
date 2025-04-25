@@ -1,4 +1,3 @@
-// navigation/HomeTab.js
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AntDesign, Foundation } from '@expo/vector-icons';
@@ -31,8 +30,8 @@ const HomeTab = () => {
         }}
         listeners={({ navigation }) => ({
           tabPress: e => {
-            e.preventDefault();
-            navigation.navigate('Hello', { screen: 'Home' });
+            e.preventDefault(); // Mencegah tab untuk berpindah sebelum logika kita dijalankan
+            navigation.navigate('Hello', { screen: 'Home' }); // Navigasi ke screen Home dalam HomeStack
           },
         })}
       />
@@ -46,9 +45,8 @@ const HomeTab = () => {
           unmountOnBlur: true,
         }}
         listeners={({ navigation }) => ({
-          tabPress: e => {
-            e.preventDefault();
-            navigation.navigate('Order', { screen: 'Orders' });
+          tabPress: () => {
+            navigation.navigate('Order', { screen: 'Orders' }); // Navigasi ke Orders dalam OrderStack
           },
         })}
       />

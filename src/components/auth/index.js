@@ -14,7 +14,7 @@ export const useAuth = () => {
       password,
       options: {
         data: {
-          full_name: username, // Add username to the full_name column in the profile
+          full_name: username
         },
       },
     });

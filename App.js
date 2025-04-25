@@ -6,11 +6,10 @@ import BasketContextProvider from './src/context/BasketContext';
 import OrderContextProvider from './src/context/OrderContext';
 import AuthContextProvider from './src/context/AuthContext';
 import RatingContextProvider from './src/context/RatingContext';
-import { linking } from './src/Navigation/linking';
 export default function App() {
   return (
     <AuthContextProvider>
-    <NavigationContainer linking={linking}>
+    <NavigationContainer>
       <BasketContextProvider>
       <OrderContextProvider>
       <RatingContextProvider>

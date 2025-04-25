@@ -21,7 +21,6 @@ const BasketContextProvider = ({ children }) => {
     if (!dbUser || !restaurant) return null;
 
     try {
-      // First try to fetch existing basket
       let { data: existingBasket, error: fetchError } = await supabase
         .from("baskets")
         .select("*")
@@ -54,7 +53,6 @@ const BasketContextProvider = ({ children }) => {
     }
   };
 
-  // Fetch basket and dishes
   useEffect(() => {
     const initializeBasket = async () => {
       if (!dbUser || !restaurant) {
@@ -140,7 +138,6 @@ const BasketContextProvider = ({ children }) => {
     }
   };
 
-  // Update dish quantity
   const updateDishQuantity = async (basketDishId, newQuantity) => {
     setIsLoading(true);
     try {
@@ -174,17 +171,26 @@ const BasketContextProvider = ({ children }) => {
     }
   };
 
-  // Clear basket
   const clearBasket = async () => {
-    if (!basket) return;
-    setIsLoading(true);
+    try {
+      // Hapus basket dari database
       const { error } = await supabase
-        .from("basket_items")
+        .from("baskets")
         .delete()
-        .eq("basket_id", basket.id);
-
-      if (error) throw error;
+        .match({ profiles_id: dbUser.id });
+        
+      if (error) {
+        console.error("Error clearing basket:", error);
+        return false;
+      }
+      
+      // Reset state local
       setBasketDishes([]);
+      return true;
+    } catch (error) {
+      console.error("Error in clearBasket:", error);
+      return false;
+    }
   };
 
   return (

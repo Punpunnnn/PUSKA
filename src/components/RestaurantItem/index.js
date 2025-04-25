@@ -8,13 +8,18 @@ const RestaurantItem = ({ restaurant }) => {
   const { getRestaurantRatings } = useRatingContext();
   const [serviceRating, setServiceRating] = useState(null);
 
+  const fetchRatings = async () => {
+    const result = await getRestaurantRatings(restaurant.id);
+    setServiceRating(result?.summary?.avgServiceRating);
+  };
+  
   useEffect(() => {
-    const fetchRatings = async () => {
-      const result = await getRestaurantRatings(restaurant.id);
-      setServiceRating(result?.summary?.avgServiceRating);
-    };
     fetchRatings();
-  }, [restaurant.id]);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchRatings();
+    });
+    return unsubscribe;
+  }, [navigation, restaurant.id, getRestaurantRatings]);
 
   const onPress = () => {
     if (restaurant.is_open) {

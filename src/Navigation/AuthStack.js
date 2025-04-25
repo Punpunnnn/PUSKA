@@ -1,9 +1,9 @@
-// navigation/AuthStack.js
+// navigation/ck.js
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignUpScreen';
 import ForgotPasswordScreen from '../screens/ForgotPassword';
-import ResetPasswordScreen from '../screens/ResetPassword'; // Pastikan path ini benar
+import ResetPasswordScreen from '../screens/ResetPassword';
 
 const Stack = createNativeStackNavigator();
 

@@ -1,4 +1,3 @@
-// navigation/OrderStack.js
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Order from '../screens/OrderScreen';
 import OrderDetail from '../screens/OrderDetail';

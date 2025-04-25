@@ -62,7 +62,7 @@ const OrderDetail = () => {
       setOrder(orderData);
       
       // Fetch rating after order is loaded if context is available
-      if (orderData && ratingContext) {
+      if (orderData.status === 'COMPLETED' && ratingContext && ratingContext.rating) {
         fetchRatingData(orderData);
       }
     } catch (error) {

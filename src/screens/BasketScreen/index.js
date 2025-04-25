@@ -67,26 +67,35 @@ const updatePuskacoin = async (newCoins) => {
 };
 
 const onCreateOrder = async () => {
-  if (totalPrice < 10000) {
-    Alert.alert('Minimal Belanja', 'Gunakan koin hanya untuk transaksi minimal Rp 10.000');
-    return;
+  try {
+    // Hitung coins yang digunakan
+    const maxCoinAllowed = Math.floor(totalPrice * 0.1);
+    const coinsToUse = Math.min(userCoins, maxCoinAllowed);
+    
+    // Update puskacoin jika menggunakan coins
+    if (isUsingCoins && coinsToUse > 0) {
+      await updatePuskacoin(userCoins - coinsToUse);
+    }
+    
+    // Buat order dan tunggu hasilnya dengan proper error handling
+    const newOrder = await createOrder(discountedPrice);
+    
+    // Cek hasil order sebelum navigasi
+    if (newOrder) {
+      // Navigasi ke halaman yang sesuai setelah order berhasil dibuat
+      navigation.reset({
+        index: 0,
+        routes: [{ name: paymentMethod === 'QRIS' ? 'QRISPayment' : 'Orders' }],
+      });
+    } else {
+      // Handle kasus order gagal dibuat
+      Alert.alert("Gagal", "Tidak dapat membuat pesanan. Silakan coba lagi.");
+    }
+  } catch (error) {
+    console.error("Error in onCreateOrder:", error);
+    Alert.alert("Error", "Terjadi kesalahan saat membuat pesanan.");
   }
-
-  const maxCoinAllowed = Math.floor(totalPrice * 0.1);
-  const coinsToUse = Math.min(userCoins, maxCoinAllowed);
-
-  if (isUsingCoins && coinsToUse > 0) {
-    await updatePuskacoin(userCoins - coinsToUse);
-  }
-
-  await createOrder(discountedPrice); // Pastikan discountedPrice = totalPrice - coinsToUse
-
-  navigation.reset({
-    index: 0,
-    routes: [{ name: paymentMethod === 'QRIS' ? 'QRISPayment' : 'Orders' }],
-  });
 };
-
 
   const onClearBasket = () => {
     clearBasket();

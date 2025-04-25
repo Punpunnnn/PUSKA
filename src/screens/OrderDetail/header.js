@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import OrderStatusBadge from './badge';
 
-const OrderDetailHeader = ({ order, onCancelOrder, onCompleteOrder, onPay }) => {
+const OrderDetailHeader = ({ order, onCancelOrder, onPay }) => {
   if (!order) {
     return null;
   }

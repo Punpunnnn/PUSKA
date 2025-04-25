@@ -1,10 +1,6 @@
-<activity
-  ...
-  android:launchMode="singleTask">
-  <intent-filter>
-    <action android:name="android.intent.action.VIEW" />
-    <category android:name="android.intent.category.DEFAULT" />
-    <category android:name="android.intent.category.BROWSABLE" />
-    <data android:scheme="Unsikantin" />
-  </intent-filter>
-</activity>
+<intent-filter>
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="UnsiKantin" android:host="reset-password" />
+</intent-filter>

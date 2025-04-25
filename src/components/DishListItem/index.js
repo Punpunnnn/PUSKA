@@ -1,22 +1,10 @@
 import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
-import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useRatingContext } from '../../context/RatingContext';
 import { Ionicons } from '@expo/vector-icons';
 
-const DishListItem = ({ menus, restaurant }) => {
+const DishListItem = ({ menus, rating }) => {
     const navigation = useNavigation();
-    const { getRestaurantRatings } = useRatingContext();
-    const [foodRating, setFoodRating] = useState(null);
-  
-    useEffect(() => {
-      const fetchRatings = async () => {
-        const result = await getRestaurantRatings(restaurant.id);
-        setFoodRating(result?.summary?.avgFoodRating);
-      };
-      fetchRatings();
-    }, [restaurant.id]);
-  
+
     const handlePress = () => {
       if (menus.is_available) {
         navigation.navigate('Dish', { id: menus.id });
@@ -26,29 +14,30 @@ const DishListItem = ({ menus, restaurant }) => {
     return (
       <Pressable onPress={menus.is_available ? handlePress : null} style={styles.container}>
         <View style={{ position: 'relative' }}>
-          {/* Bagian isi yang diberi opacity kalau habis */}
-          <View style={!menus.is_available && { opacity: 0.4 }}>
-            <View style={styles.content}>
-              <View style={styles.infoContainer}>
-                <Text style={styles.name}>{menus.name}</Text>
-                <View style={{ flexDirection: 'row', marginBottom: 5, alignItems: 'center', gap: 5 }}>
-                  <Ionicons name="star" size={18} color="orange" />
-                  <Text style={styles.rating}>
-                    {foodRating !== null ? foodRating.toFixed(1) : '?'}
+                <View style={!menus.is_available && { opacity: 0.4 }}>
+                <View style={styles.content}>
+                  <View style={styles.infoContainer}>
+                  <Text style={styles.name}>{menus.name}</Text>
+                  {rating !== null && (
+                    <View style={{ flexDirection: 'row', marginBottom: 5, alignItems: 'center', gap: 5 }}>
+                    <Ionicons name="star" size={18} color="orange" />
+                    <Text style={styles.rating}>
+                      {rating.toFixed(1)}
+                    </Text>
+                    </View>
+                  )}
+                  <Text style={styles.desc} numberOfLines={2}>
+                    {menus.description}
                   </Text>
+                  <Text style={styles.price}>
+                    Rp.{menus.price.toLocaleString('id-ID')}
+                  </Text>
+                  </View>
+                  <Image source={{ uri: menus.image }} style={styles.image} />
                 </View>
-                <Text style={styles.desc} numberOfLines={2}>
-                  {menus.description}
-                </Text>
-                <Text style={styles.price}>
-                  Rp.{menus.price.toLocaleString('id-ID')}
-                </Text>
-              </View>
-              <Image source={{ uri: menus.image }} style={styles.image} />
-            </View>
-          </View>
-  
-          {/* Overlay teks "HABIS" */}
+                </View>
+            
+                {/* Overlay teks "HABIS" */}
           {!menus.is_available && (
             <View style={styles.overlay}>
               <Text style={styles.outOfStockText}>HABIS</Text>

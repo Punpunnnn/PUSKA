@@ -1,6 +1,6 @@
 // Signup.js
 import { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Alert, Image } from 'react-native';
 import { useAuth } from '../../components/auth';
 import { useNavigation } from '@react-navigation/native';
 
@@ -28,24 +28,29 @@ const Signup = () => {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/puska.png')} style={styles.image} />
+      <Text style={styles.subtitle}>Buat akun baru</Text>
+      <Text style={styles.subbab}>Username</Text>
       <TextInput
-        placeholder="Username"
+        placeholder="masukkan username anda"
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
         keyboardType="default"
         style={styles.input}
       />
+      <Text style={styles.subbab}>Email</Text>
       <TextInput
-        placeholder="Email"
+        placeholder="Masukkan email anda"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
         style={styles.input}
       />
+      <Text style={styles.subbab}>Password</Text>
       <TextInput
-        placeholder="Password"
+        placeholder="Masukkan kata sandi anda"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -55,12 +60,18 @@ const Signup = () => {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Sign Up</Text>
+          <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>Daftar Akun</Text>
         )}
       </Pressable>
-      <Pressable onPress={() => navigation.navigate('Login')}>
-        <Text>Already have an account? Login</Text>
-      </Pressable>
+      <Text style={styles.link}>
+              Sudah punya akun?{' '}
+              <Text
+                style={{ color: '#8A1538' }}
+                onPress={() => navigation.navigate('Login')}
+              >
+                Masuk
+              </Text>
+            </Text>
     </View>
   );
 };
@@ -69,29 +80,50 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     padding: 16,
+    backgroundColor: '#FCFCFC',
+  },
+  image: {
+    width: 200,
+    height: 200,
+    alignSelf: 'center',
+    marginTop: -120,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#8A1538',
+    marginBottom: 20,
+  },
+  subbab: {
+    fontSize: 16,
+    fontWeight: '500',
+    paddingLeft: '10%', // Align with TextInput
+    marginBottom: 8,
   },
   input: {
+    width: '80%',
+    alignSelf: 'center',
     height: 50,
     borderColor: 'gray',
     borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 12,
-    width: '100%',
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 20,
+    paddingHorizontal: 8,
+  },
+  link: {
+    fontSize: 13,
+    marginTop: 12,
+    color: '#333333',
+    textAlign: 'center',
   },
   button: {
-    backgroundColor: '#007BFF',
-    borderRadius: 5,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    width: '100%',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    width: '80%',
+    alignSelf: 'center',
+    backgroundColor: '#5DA574',
+    borderRadius: 16,
+    paddingVertical: 12,
   },
 });
 

@@ -73,7 +73,6 @@ const Profile = () => {
       const { error } = await signOut();
       console.log('Sign out success');
       if (error) throw error;
-      // Tidak perlu navigation.reset
     } catch (error) {
       Alert.alert('Error', 'Failed to sign out');
       console.error('Error during sign out:', error);

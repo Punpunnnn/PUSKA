@@ -7,6 +7,7 @@ import Basket from '../screens/BasketScreen';
 import Order from '../screens/OrderScreen';
 import OrderDetail from '../screens/OrderDetail';
 import QRISPaymentScreen from '../screens/payment';
+import RestaurantReviewScreen from '../screens/review';
 
 const HomeStack = createNativeStackNavigator();
 
@@ -14,6 +15,7 @@ const HomeStackNavigator = () => (
   <HomeStack.Navigator>
     <HomeStack.Screen name="Home" component={Homescreen} options={{ headerShown: false }} />
     <HomeStack.Screen name="Restaurant" component={RestaurantDetailScreen} options={{ headerShown: false }} />
+    <HomeStack.Screen name="RestaurantReview" component={RestaurantReviewScreen} options={{ headerShown: false }} />
     <HomeStack.Screen name="Dish" component={DishDetailsScreen} />
     <HomeStack.Screen
       name="Basket"

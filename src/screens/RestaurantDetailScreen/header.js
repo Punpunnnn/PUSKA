@@ -20,7 +20,7 @@ const RestaurantHeader = ({ restaurant }) => {
   }, [restaurant.id]);
 
   const goToReviewPage = () => {
-    navigation.navigate("ReviewPage", { id: restaurant.id });
+    navigation.navigate("RestaurantReview", { restaurantId: restaurant.id });
   };
 
   return (
@@ -41,7 +41,11 @@ const RestaurantHeader = ({ restaurant }) => {
               </Text>
             </View>
             <Text style={styles.reviewText}>
-              {totalUser !== null ? `${totalUser}+ Review` : "?"}
+              {totalUser !== null
+                ? totalUser > 10
+                  ? "+10 Reviews"
+                  : `${totalUser} Review${totalUser > 1 ? "s" : ""}`
+                : "?"}
             </Text>
           </Pressable>
         </View>
@@ -82,7 +86,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "600",
+    fontWeight: "bold",
     marginTop: 15,
   },
   subtitle: {

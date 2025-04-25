@@ -17,8 +17,7 @@ const SplashScreen = () => {
 
   return (
     <View style={styles.container}>
-    <Image source={require('../../../assets/Puska.png')} style={{ width: 200, height: 200 }} />
-      <Text style={styles.text}>Your Affordable Buddy</Text>
+    <Image source={require('../../../assets/puska.png')} style={{ width: 200, height: 200 }} />
     </View>
   );
 };
@@ -29,12 +28,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
-  },
-  text: {
-    fontSize: 20,
-    fontWeight: 500,
-    marginTop: 10,
-    fontFamily: 'Poppins',
   },
 });
 

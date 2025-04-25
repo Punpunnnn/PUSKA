@@ -1,146 +1,100 @@
 import { View, StyleSheet, FlatList, TextInput, Text } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import RestaurantItem from '../../components/RestaurantItem';
-import { supabase } from '../../lib/supabase';
+import useRealtimeRestaurant from '../../hooks/useRealtimeRestaurant';
+import useRealtimeAllMenus from '../../hooks/useRealtimeAllMenus';
 import { Ionicons } from '@expo/vector-icons';
+import { debounce } from 'lodash';
 
 export default function Homescreen() {
   const [restaurants, setRestaurants] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
-  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState(restaurants);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
- 
 
-  useEffect(() => {
-    // Fetch both restaurants and menu items
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const { data: restaurantsData, error: restaurantsError } = await supabase
-          .from('restaurants')
-          .select();
-          
-        if (restaurantsError) {
-          console.error("Restaurant fetch error:", restaurantsError);
-          setError("Failed to load restaurants");
-          setIsLoading(false);
-          return;
-        }
-        
-        // Fetch menu items
-        const { data: menuData, error: menuError } = await supabase
-          .from('menus')
-          .select('id, name, price, restaurants_id');
-          
-        if (menuError) {
-          console.error("Menu fetch error:", menuError);
-          setError("Failed to load menu items");
-          setIsLoading(false);
-          return;
-        }
-        
-        // Ensure restaurantsData is valid before setting state
-        if (Array.isArray(restaurantsData)) {
-          setRestaurants(restaurantsData);
-          setFilteredRestaurants(restaurantsData);
-        } else {
-          console.error("Restaurant data is not an array:", restaurantsData);
-          setRestaurants([]);
-          setFilteredRestaurants([]);
-        }
-        
-        // Ensure menuData is valid before setting state
-        if (Array.isArray(menuData)) {
-          setMenuItems(menuData);
-        } else {
-          setMenuItems([]);
-        }
-      } catch (err) {
-        console.error("Unexpected error during data fetch:", err);
-        setError("An unexpected error occurred");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
+  useRealtimeRestaurant(setRestaurants, setIsLoading, setError);
+  useRealtimeAllMenus(setMenuItems, setIsLoading, setError);
 
-  // Handle search functionality
-  const handleSearch = (text) => {
+  const handleSearch = useCallback((text) => {
     setSearchQuery(text);
-    
+
     if (!text.trim()) {
-      // If search text is empty, show all restaurants
       setFilteredRestaurants(restaurants);
       return;
     }
-    
+
     const lowercaseQuery = text.toLowerCase();
-    
-    // Search by restaurant name
-    const matchedByName = restaurants.filter(restaurant => 
+    const matchedByName = restaurants.filter(restaurant =>
       restaurant?.title?.toLowerCase().includes(lowercaseQuery)
     );
-    
-    // Find restaurant IDs that have matching menu items
-    const matchedMenuItems = menuItems.filter(item => 
-      item?.name?.toLowerCase().includes(lowercaseQuery)
-    );
-    
-    // Get unique restaurant IDs from matched menu items
-    const matchedRestaurantIds = [...new Set(matchedMenuItems.map(item => item.restaurant_id))];
-    
-    // Find restaurants that match these IDs
-    const matchedByMenu = restaurants.filter(restaurant => 
+    const matchedMenuItems = menuItems.filter(item => {
+      const name = item?.name?.toLowerCase();
+      return (
+        name.includes(lowercaseQuery) ||
+        name.split(' ').some(word => word.startsWith(lowercaseQuery))
+      );
+    });
+    const matchedRestaurantIds = [...new Set(matchedMenuItems.map(item => item.restaurants_id))];
+    const matchedByMenu = restaurants.filter(restaurant =>
       matchedRestaurantIds.includes(restaurant.id)
     );
-    
-    // Combine results and remove duplicates
     const combinedResults = [...matchedByName, ...matchedByMenu];
     const uniqueResults = Array.from(new Map(combinedResults.map(item => [item.id, item])).values());
-    
     setFilteredRestaurants(uniqueResults);
-  };
+  }, [restaurants, menuItems]);
+
+  const debouncedSearch = useMemo(() => debounce(handleSearch, 300), [handleSearch]);
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredRestaurants(restaurants);
+    }
+  }, [restaurants, searchQuery]);
 
 
   return (
     <View style={styles.page}>
       <View style={styles.headerContainer}> 
-      {/* Header */}
-      <Text style={styles.headerTitle}>Home</Text>
-      
-      {/* Search Component */}
-      <View style={styles.searchContainer}>
+        <Text style={styles.headerTitle}>Home</Text>
+        
+        <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
+
         <TextInput
           style={styles.searchInput}
           placeholder="Cari kantin atau menu..."
           value={searchQuery}
-          onChangeText={handleSearch}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+            debouncedSearch(text);
+          }}
+          returnKeyType="search"
+          clearButtonMode="never"
         />
+
         {searchQuery ? (
           <Ionicons 
             name="close-circle" 
             size={20} 
             color="gray" 
             style={styles.clearIcon}
-            onPress={() => handleSearch('')} 
+            onPress={() => {
+              setSearchQuery('');
+              debouncedSearch('');
+            }} 
           />
         ) : null}
       </View>
+
+      {searchQuery.trim() !== '' && (
+        <Text style={styles.resultsText}>
+          Ditemukan {filteredRestaurants.length} hasil
+        </Text>
+      )}
+
       </View>
       
-      {/* Results count when searching */}
-      {searchQuery ? (
-        <Text style={styles.resultsText}>
-          Found {filteredRestaurants.length} {filteredRestaurants.length === 1 ? 'result' : 'results'}
-        </Text>
-      ) : null}
-      
-      {/* Restaurant list */}
       <FlatList
         contentContainerStyle={{ padding:16 }}
         data={filteredRestaurants}
@@ -209,7 +163,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#666',
+    color: 'white',
   },
   emptyText: {
     textAlign: 'center',
