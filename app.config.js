@@ -9,7 +9,6 @@ export default {
     orientation: "portrait",
     userInterfaceStyle: "light",
     icon: "./assets/icon.png",
-    newArchEnabled: true,
     android: {
       package: "com.anonymous.puska"
     },
@@ -23,26 +22,11 @@ export default {
         projectId: "aa15121b-0722-434f-90c7-04478c450b84"
       }
     },
-    plugins: [
-        [
-          "expo-build-properties",
-          {
-            android: {
-              extraProguardRules: `
-                -keepattributes *Annotation*
-                -keepattributes Signature
-                -dontwarn com.squareup.okhttp.**
-              `
-            }
-          }
-        ]
-      ],
     runtimeVersion: {
-      policy: "appVersion"
+      policy: "appVersion" // <- Gunakan ini agar tidak error di cloud
     },
     updates: {
-      enabled: true,
-      url: "https://u.expo.dev/aa15121b-0722-434f-90c7-04478c450b84"
+      enabled: true
     }
   }
 };
