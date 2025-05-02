@@ -3,7 +3,7 @@ import 'dotenv/config';
 export default {
   expo: {
     name: "PUSKA",
-    slug: "PUSKA",
+    slug: "UnsiKantin",
     scheme: "PUSKA",
     version: "1.0.0",
     orientation: "portrait",
@@ -24,7 +24,7 @@ export default {
       }
     },
     runtimeVersion: {
-      policy: "nativeVersion"
+      policy: "appVersion"
     },
     updates: {
       enabled: true,
