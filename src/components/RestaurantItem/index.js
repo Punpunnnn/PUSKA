@@ -11,7 +11,7 @@ const RestaurantItem = ({ restaurant }) => {
   const fetchRatings = async () => {
     // Gunakan false untuk menggunakan cache jika tersedia
     const result = await getRestaurantRatings(restaurant.id, false);
-    setServiceRating(result?.summary?.avgServiceRating);
+    setServiceRating(result?.avgServiceRating);
   };
 
   useEffect(() => {
@@ -35,7 +35,7 @@ const RestaurantItem = ({ restaurant }) => {
             <View style={styles.rating}>
               <Ionicons name="star" size={18} color="orange" />
               <Text style={styles.fontRating}>
-                {serviceRating !== null ? serviceRating.toFixed(1) : "?"}
+              {typeof serviceRating === 'number' ? serviceRating.toFixed(1) : "?"}
               </Text>
             </View>
 

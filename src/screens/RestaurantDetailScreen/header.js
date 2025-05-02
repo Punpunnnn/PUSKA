@@ -13,8 +13,8 @@ const RestaurantHeader = ({ restaurant }) => {
   useEffect(() => {
     const fetchRatings = async () => {
       const result = await getRestaurantRatings(restaurant.id);
-      setServiceRating(result?.summary?.avgServiceRating);
-      setTotalUser(result?.summary?.totalReviews);
+      setServiceRating(result?.avgServiceRating);
+      setTotalUser(result?.totalReviews);
     };
     fetchRatings();
   }, [restaurant.id]);
@@ -37,14 +37,14 @@ const RestaurantHeader = ({ restaurant }) => {
             <View style={styles.ratingTop}>
               <Ionicons name="star" size={16} color="white" />
               <Text style={styles.ratingText}>
-                {serviceRating !== null ? serviceRating.toFixed(1) : "?"}
+              {typeof serviceRating === 'number' ? serviceRating.toFixed(1) : "?"}
               </Text>
             </View>
             <Text style={styles.reviewText}>
               {totalUser !== null
                 ? totalUser > 10
                   ? "+10 Reviews"
-                  : `${totalUser} Review${totalUser > 1 ? "s" : ""}`
+                  : `${totalUser} Review${totalUser > 1 ? "s" : "0"}`
                 : "?"}
             </Text>
           </Pressable>
