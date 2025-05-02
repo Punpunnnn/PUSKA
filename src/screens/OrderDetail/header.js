@@ -10,7 +10,7 @@ const OrderDetailHeader = ({ order, onCancelOrder, onPay }) => {
   const renderActionButtons = () => {
     return (
       <View style={styles.actionsContainer}>
-        {order.order_status === 'PENDING' && (
+        {order.status === 'PENDING' && (
           <TouchableOpacity 
             style={styles.cancelButton}
             onPress={onPay}
@@ -20,7 +20,7 @@ const OrderDetailHeader = ({ order, onCancelOrder, onPay }) => {
           </TouchableOpacity>
         )}
 
-        {order.order_status === 'NEW' && (
+        {order.status === 'NEW' && (
           <TouchableOpacity 
             style={styles.cancelButton}
             onPress={onCancelOrder}
@@ -44,7 +44,7 @@ const OrderDetailHeader = ({ order, onCancelOrder, onPay }) => {
         <Text style={styles.title}>{order.restaurant.title}</Text>
         
         <View style={styles.orderInfoRow}>
-          <OrderStatusBadge status={order.order_status} />
+          <OrderStatusBadge status={order.status} />
           <Text style={styles.dateInfo}>
             {new Date(order.created_at).toLocaleDateString()}
           </Text>

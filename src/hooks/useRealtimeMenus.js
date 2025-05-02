@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { Alert } from 'react-native';
 
 const useRealtimeMenus = (setMenus, restaurantId) => {
   useEffect(() => {
@@ -12,10 +13,9 @@ const useRealtimeMenus = (setMenus, restaurantId) => {
         .eq('restaurants_id', restaurantId);
 
       if (error) {
-        console.error('❌ Error fetching menus by restaurant:', error.message);
+        Alert.alert('Gagal menampilkan menu:', error.message);
         return;
       }
-
       setMenus(data);
     };
 

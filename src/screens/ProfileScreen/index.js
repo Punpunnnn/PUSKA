@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
   Text,
-  TextInput,
   Pressable,
   Alert,
   ActivityIndicator,
@@ -12,71 +11,45 @@ import {
   StatusBar,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
-import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuthContext } from '../../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import useRealtimeProfile from '../../hooks/useRealtimeProfile';
 
 const Profile = () => {
-  const { signOut} = useAuthContext();
   const [user, setUser] = useState(null);
-  const [fullName, setFullName] = useState('');
-  const [coins, setCoins] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
+  const [loading, setLoading] = useState(true);
+  const profile = useRealtimeProfile(user?.id);
 
   useEffect(() => {
-    fetchUserProfile();
+    const fetchUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to load user data');
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
   }, []);
 
-  const fetchUserProfile = async () => {
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name, coins')
-        .eq('id', user.id)
-        .single();
-      setFullName(profile.full_name || '');
-      setCoins(profile.coins || 0);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load profile data');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProfile = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({ 
-          id: user.id, 
-          full_name: fullName, 
-        });
-
-      if (error) throw error;
-
-      Alert.alert('Success', 'Profile updated successfully!');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update profile');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+  if (loading || !profile) {
+    return <Text>Loading...</Text>; // tampilkan loading sementara
+  }
+  const handlePress = () => {
+    navigation.navigate("ChangePassword", { currentFullName: fullName });
   };
 
   const handleLogout = async () => {
-    try {
-      const { error } = await signOut();
-      console.log('Sign out success');
-      if (error) throw error;
-    } catch (error) {
-      Alert.alert('Error', 'Failed to sign out');
-      console.error('Error during sign out:', error);
-    }
+    const { error } = await supabase.auth.signOut({ scope: 'global' });
+    if (error) {
+      Alert.alert('Logout Gagal', error.message);
+    };
+    return;
   };
   
   return (
@@ -100,7 +73,7 @@ const Profile = () => {
                   </View>
                 </View>
                 
-                <Text style={styles.fullName}>{fullName || 'No Name Set'}</Text>
+                <Text style={styles.fullName}>{profile.full_name || 'No Name Set'}</Text>
                 <Text style={styles.emailSubtitle}>{user?.email}</Text>
               </View>
               
@@ -111,30 +84,20 @@ const Profile = () => {
                     <Text style={styles.coinsLabel}>PUSKACoin</Text>
                   </View>
                   <View style={styles.coinValueWrapper}>
-                    <Text style={styles.coinsValue}>{coins}</Text>
+                    <Text style={styles.coinsValue}>{profile.coins}</Text>
                   </View>
                 </View>
               </View>
 
               <View style={styles.formCard}>
-                <Text style={styles.sectionTitle}>Edit Profile</Text>
-                <TextInput
-                  placeholder="Full Name"
-                  value={fullName}
-                  onChangeText={setFullName}
-                  style={styles.input}
-                  placeholderTextColor="#999"
-                />
-
                 <Pressable 
                   style={({pressed}) => [
                     styles.button,
                     pressed && styles.buttonPressed
                   ]} 
-                  onPress={updateProfile}
+                  onPress={handlePress}
                 >
                   <Text style={styles.buttonText}>Update Profile</Text>
-                  <Ionicons name="checkmark-circle" size={20} color="#fff" style={styles.buttonIcon} />
                 </Pressable>
               </View>
 

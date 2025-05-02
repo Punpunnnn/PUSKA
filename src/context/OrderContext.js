@@ -29,8 +29,10 @@ const OrderContextProvider = ({ children }) => {
       .eq("user_id", dbUser.id)
       .order("created_at", { ascending: false });
 
-    if (error) console.error("Error fetching orders:", error);
-    else setOrders(data);
+    if (error) {
+       console.error("Error fetching orders:", error);
+    }
+    setOrders(data);
   };
 
   // Setup realtime order untuk user
@@ -49,8 +51,7 @@ const OrderContextProvider = ({ children }) => {
           table: "orders",
           filter: `user_id=eq.${dbUser.id}`,
         },
-        (payload) => {
-          console.log("Realtime orders payload:", payload);
+        () => {
           fetchOrders(); // Refresh orders saat ada perubahan
         }
       )
@@ -67,97 +68,134 @@ const OrderContextProvider = ({ children }) => {
       const usedCoins = totalPrice - safeDiscountedPrice;
       const orderStatus = paymentMethod === 'QRIS' ? 'PENDING' : 'NEW';
   
-      // Gunakan .select() untuk mendapatkan data yang diinsert
-      const { data, error: orderError } = await supabase
+      const orderPayload = {
+        user_id: dbUser.id,
+        restaurants_id: restaurant.id,
+        total: safeDiscountedPrice,
+        original_total: totalPrice,
+        order_status: orderStatus,
+        type: paymentMethod,
+        notes,
+        used_coin: usedCoins,
+      };
+  
+      const { data: orderData, error: orderError } = await supabase
         .from("orders")
-        .insert([{
-          user_id: dbUser.id,
-          restaurants_id: restaurant.id,
-          total: safeDiscountedPrice,
-          original_total: totalPrice,
-          order_status: orderStatus,
-          type: paymentMethod,
-          notes,
-          used_coin: usedCoins,
-        }])
+        .insert([orderPayload])
         .select();
   
-      if (orderError || !data || data.length === 0) {
-        console.error("Error creating order:", orderError || "No data returned");
+      if (orderError || !orderData?.[0]) {
+        console.error("Error membuat pesanan:", orderError || "No data returned");
         return null;
       }
   
-      const newOrder = data[0]; // Ambil order pertama dari array data
-      
-      const orderDishes = basketDishes.map((basketDish) => ({
-        quantity: basketDish.quantity,
+      const newOrder = orderData[0];
+  
+      const orderDishesPayload = basketDishes.map(({ quantity, menus }) => ({
+        quantity,
         order_id: newOrder.id,
-        menus_id: basketDish.menus.id,
+        menus_id: menus.id,
       }));
   
       const { error: dishesError } = await supabase
         .from("order_dishes")
-        .insert(orderDishes);
+        .insert(orderDishesPayload);
   
       if (dishesError) {
-        console.error("Error adding order dishes:", dishesError);
+        console.error("Error menambahkan menu ke pesanan:", dishesError);
         return null;
       }
-  
-      // Pastikan basket dibersihkan setelah order berhasil dibuat
-      const clearResult = await clearBasket();
-      if (!clearResult) {
-        console.warn("Warning: Basket might not be cleared properly");
-      }
-      
+      await clearBasket();  
       setNotes('');
       setPaymentMethod('CASH');
+  
       return newOrder;
     } catch (error) {
       console.error("Error in createOrder:", error);
       return null;
     }
   };
+  
 
   const getOrder = async (orderId) => {
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .select(`*, Restaurant:restaurants_id (id, title, image)`)
-      .eq("id", orderId)
-      .single();
-
-    if (orderError) {
-      throw new Error(`Error fetching order: ${orderError.message}`);
+    try {
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .select(`*, Restaurant:restaurants_id (id, title, image)`)
+        .eq("id", orderId)
+        .single();
+  
+      if (orderError || !order) {
+        throw new Error(`Gagal mengambil data order: ${orderError?.message || 'Order tidak ditemukan'}`);
+      }
+  
+      const { data: orderDishes, error: dishesError } = await supabase
+        .from("order_dishes")
+        .select(`id, quantity, menus (id, name, price, image)`)
+        .eq("order_id", orderId);
+  
+      if (dishesError) {
+        throw new Error(`Gagal mengambil data menu pesanan: ${dishesError.message}`);
+      }
+  
+      return {
+        id: order.id,
+        status: order.order_status,
+        total: order.total,
+        original_total: order.original_total,
+        notes: order.notes,
+        type: order.type,
+        created_at: order.created_at,
+        restaurant: order.Restaurant,
+        dishes: orderDishes.map(({ id, quantity, menus }) => ({
+          id,
+          quantity,
+          menu_id: menus.id,
+          menu_name: menus.name,
+          price: menus.price,
+          image: menus.image,
+        })),
+      };
+    } catch (error) {
+      console.error("getOrder error:", error);
+      throw error;
     }
-
-    const { data: orderDishes, error: dishesError } = await supabase
-      .from("order_dishes")
-      .select(`*, menus (id, name, price, image)`)
-      .eq("order_id", orderId);
-
-    if (dishesError) {
-      throw new Error(`Error fetching order dishes: ${dishesError.message}`);
-    }
-
-    return {
-      ...order,
-      status: order.order_status,
-      restaurant: order.Restaurant,
-      dishes: orderDishes.map((dish) => ({
-        id: dish.id,
-        quantity: dish.quantity,
-        menu_name: dish.menus.name,
-        price: dish.menus.price,
-      })),
-    };
-  };
+  };  
 
   const updateOrderStatus = async (orderId, status) => {
-    const { error } = await supabase
-      .from("orders")
-      .update({ order_status: status })
-      .eq("id", orderId);
-    if (error) throw error;
+    const { data: orderData, error: fetchError } = await supabase
+      .from('orders')
+      .select('user_id, used_coin')
+      .eq('id', orderId)
+      .single();
+  
+    if (fetchError) {
+      throw fetchError;
+    }
+  
+    const updates = [];
+    if (status === 'CANCELLED' && orderData.used_coin > 0) {
+      updates.push(
+        supabase.rpc('increment_coins', {
+          user_id_param: orderData.user_id,
+          coin_amount: orderData.used_coin,
+        })
+      );
+    }
+    updates.push(
+      supabase
+        .from('orders')
+        .update({ order_status: status })
+        .eq('id', orderId)
+    );
+  
+    const results = await Promise.all(updates);
+  
+    for (const result of results) {
+      if (result.error) {
+        throw result.error;
+      }
+    }
   };
 
   const clearCompletedOrders = async () => {

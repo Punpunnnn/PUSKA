@@ -3,21 +3,27 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AntDesign, Foundation } from '@expo/vector-icons';
 import HomeStackNavigator from './HomeStack';
 import OrderStackNavigator from './OrderStack';
-import ProfileScreen from '../screens/ProfileScreen';
+import ProfileStackNavigator from './ProfileStack';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
 
 const HomeTab = () => {
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: 'white',
-        },
-        tabBarActiveTintColor: 'maroon',
-        tabBarInactiveTintColor: 'grey',
-      }}
+        tabBarStyle: ((route) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+
+          if (routeName === "ChangePassword" || routeName === "OrderDetail") {
+            return { display: "none" };
+          }
+          return { display: "flex" };
+        })(route),
+        tabBarActiveTintColor: '#800000', // Active tab color
+        tabBarInactiveTintColor: '#6c757d', // Inactive tab color
+      })}
     >
       <Tab.Screen
         name="Hello"
@@ -30,8 +36,8 @@ const HomeTab = () => {
         }}
         listeners={({ navigation }) => ({
           tabPress: e => {
-            e.preventDefault(); // Mencegah tab untuk berpindah sebelum logika kita dijalankan
-            navigation.navigate('Hello', { screen: 'Home' }); // Navigasi ke screen Home dalam HomeStack
+            e.preventDefault(); // Prevent tab switch before logic runs
+            navigation.navigate('Hello', { screen: 'Home' }); // Navigate to Home screen in HomeStack
           },
         })}
       />
@@ -46,13 +52,13 @@ const HomeTab = () => {
         }}
         listeners={({ navigation }) => ({
           tabPress: () => {
-            navigation.navigate('Order', { screen: 'Orders' }); // Navigasi ke Orders dalam OrderStack
+            navigation.navigate('Order', { screen: 'Orders' }); // Navigate to Orders in OrderStack
           },
         })}
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStackNavigator}
         options={{
           tabBarIcon: ({ color }) => (
             <AntDesign name="user" size={24} color={color} />

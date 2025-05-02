@@ -7,16 +7,15 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
-    // Use Supabase to sign in the user with the updated method
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: username,
       password: password,
     });
 
     if (error) {
-      Alert.alert('Login Error', error.message); // Show error message
+      Alert.alert('Login Error', error.message);
     } else {
-      console.log('Login success:', data.user.email);
+      Alert.alert('Login Berhasil', 'Selamat datang kembali!');
     }
   };
 

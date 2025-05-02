@@ -10,14 +10,14 @@ export const RatingProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [ratingsCache, setRatingsCache] = useState({});
 
-  // Menggunakan useCallback untuk memoize fungsi
+  // Helper function to get the current user ID
   const getCurrentUserId = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
     return user.id;
   }, []);
 
-  // Menggunakan useCallback untuk memoize fungsi fetchData
+  // Generic helper for fetching data with error handling
   const fetchData = useCallback(async (query) => {
     setIsLoading(true);
     setError(null);
@@ -34,11 +34,20 @@ export const RatingProvider = ({ children }) => {
     }
   }, []);
 
-  // Submit a new rating dengan useCallback
+  // Fungsi untuk menghapus cache rating untuk restoran tertentu
+  const invalidateCache = useCallback((restaurantId) => {
+    setRatingsCache(prev => {
+      const newCache = {...prev};
+      delete newCache[restaurantId];
+      return newCache;
+    });
+  }, []);
+
+  // Submit a new rating or update existing one
   const submitRating = useCallback(async (orderId, restaurantId, ratingData) => {
     try {
       const userId = await getCurrentUserId();
-      return fetchData(
+      const result = await fetchData(
         supabase.from('ratings').insert({
           user_id: userId,
           restaurant_id: restaurantId,
@@ -46,32 +55,53 @@ export const RatingProvider = ({ children }) => {
           service_rating: ratingData.serviceRating,
           food_quality_rating: ratingData.foodQualityRating,
           review: ratingData.review
-        }).select() // Tambahkan select() untuk mendapatkan data yang diinsert
+        }).select()
       );
+      
+      // Invalidate cache setelah submit rating baru
+      invalidateCache(restaurantId);
+      
+      return result;
     } catch (err) {
       setError(err.message);
       return null;
     }
-  }, [getCurrentUserId, fetchData]);
+  }, [getCurrentUserId, fetchData, invalidateCache]);
 
-  // Get rating for a specific order dengan useCallback
+  // Get rating for a specific order
   const getRatingByOrderId = useCallback(async (orderId) => {
     return fetchData(
       supabase.from('ratings').select('*').eq('order_id', orderId).single()
     );
   }, [fetchData]);
 
-  // Get all ratings for a restaurant dengan useCallback dan optimasi kalkulasi
-  const getRestaurantRatings = useCallback(async (restaurantId) => {
+  const getRestaurantRatings = useCallback(async (restaurantId, forceRefresh = false) => {
+    if (!forceRefresh && ratingsCache[restaurantId]) {
+      return ratingsCache[restaurantId];
+    }
+    
     const data = await fetchData(
       supabase.from('ratings')
         .select('*, users: user_id (id, full_name)')
         .eq('restaurant_id', restaurantId)
     );
     
-    if (!data || data.length === 0) return { ratings: [], summary: { totalServiceRating: 0, totalFoodRating: 0, avgServiceRating: 0, avgFoodRating: 0, totalReviews: 0 } };
+    if (!data || data.length === 0) {
+      const emptyResult = { 
+        ratings: [], 
+        summary: { 
+          totalServiceRating: 0, 
+          totalFoodRating: 0, 
+          avgServiceRating: 0, 
+          avgFoodRating: 0, 
+          totalReviews: 0 
+        } 
+      };
+      
+      setRatingsCache(prev => ({...prev, [restaurantId]: emptyResult}));
+      return emptyResult;
+    }
 
-    // Optimasi: Kalkulasi dalam satu loop saja
     let totalServiceRating = 0;
     let totalFoodRating = 0;
     
@@ -81,29 +111,28 @@ export const RatingProvider = ({ children }) => {
     });
     
     const totalReviews = data.length;
-    const avgServiceRating = totalReviews ? totalServiceRating / totalReviews : 0;
-    const avgFoodRating = totalReviews ? totalFoodRating / totalReviews : 0;
-
-    return {
-      ratings: data,
-      summary: {
-        totalServiceRating,
-        totalFoodRating,
-        avgServiceRating,
-        avgFoodRating,
-        totalReviews
-      }
+    const summary = {
+      totalServiceRating,
+      totalFoodRating,
+      avgServiceRating: totalServiceRating / totalReviews || 0,
+      avgFoodRating: totalFoodRating / totalReviews || 0,
+      totalReviews
     };
-  }, [fetchData]);
+    
+    setRatingsCache(prev => ({...prev, [restaurantId]: summary}));
+    
+    return summary;
+  }, [fetchData, ratingsCache]);
 
-  // Memoize value object agar tidak di-recreate pada setiap render
+  // Expose invalidateCache jika perlu digunakan dari luar Context
   const value = React.useMemo(() => ({
     isLoading,
     error,
     submitRating,
     getRatingByOrderId,
-    getRestaurantRatings
-  }), [isLoading, error, submitRating, getRatingByOrderId, getRestaurantRatings]);
+    getRestaurantRatings,
+    invalidateCache  // Export fungsi ini juga
+  }), [isLoading, error, submitRating, getRatingByOrderId, getRestaurantRatings, invalidateCache]);
 
   return <RatingContext.Provider value={value}>{children}</RatingContext.Provider>;
 };

@@ -8,12 +8,13 @@ const ForgotPasswordScreen = ({ navigation }) => {
   const handleSendOtp = async () => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
+      
       options: { shouldCreateUser: false },
     });
 
     if (error) {
-      Alert.alert('Gagal', error.message);
-    } else {
+      Alert.alert('Email yang digunakan tidak terdaftar', error.message); } 
+    else {
       Alert.alert('OTP Terkirim', 'Cek email kamu dan masukkan OTP.');
       navigation.navigate('ResetPassword', { email });
     }

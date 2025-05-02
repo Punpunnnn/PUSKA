@@ -10,64 +10,47 @@ const ResetPasswordScreen = ({ route, navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const {setResettingPassword } = useAuthContext();
 
-  const handleResetPassword = async () => {
-    try {
-      if (password !== confirmPassword) {
-        Alert.alert('Gagal', 'Password baru dan konfirmasi password tidak cocok.');
-        return;
-      }
-      
-      // First, verify the OTP
-      const { error: otpError } = await supabase.auth.verifyOtp({
+  const showError = (message) => {
+    Alert.alert('Error', message || 'Terjadi kesalahan.');
+  };
+  
+  const handleResetPassword = async () => { //1
+    if (password !== confirmPassword) { // 2
+      showError('Password baru dan konfirmasi password tidak cocok.'); //3
+      return;
+    }
+    try { //4
+      const { error: otpError } = await supabase.auth.verifyOtp({ 
         email,
         token: otp,
         type: 'recovery',
       });
-      
-      if (otpError) {
-        Alert.alert('OTP Salah', otpError.message);
-        return;
-      }
-      
-      setResettingPassword(true);
-      
-      const { error: updateError } = await supabase.auth.updateUser({ 
-        password: password 
-      });
-      
-      if (updateError) {
-        setResettingPassword(false);
-        Alert.alert('Gagal', updateError.message);
-        return;
-      }
-      await supabase.auth.signOut({ scope: 'global' });
-      
-      // Let the user know the process was successful
-      Alert.alert(
-        'Berhasil', 
-        'Password berhasil diubah. Silakan login kembali dengan password baru Anda.', 
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Clear out any remaining auth state
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              });
-              setTimeout(() => {
-                setResettingPassword(false);
-              }, 1000);
-            },
+  
+      if (otpError) return showError(otpError.message); //5 //6
+  
+      setResettingPassword(true); //7
+  
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) return showError(updateError.message); //8 //9
+  
+      await supabase.auth.signOut({ scope: 'global' }); //10
+  
+      Alert.alert('Berhasil', 'Password berhasil diubah. Silakan login kembali dengan password baru Anda.', [
+        {
+          text: 'OK',
+          onPress: () => {
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+            setTimeout(() => setResettingPassword(false), 1000);
           },
-        ]
-      );
-    } catch (error) {
-      console.error('Error resetting password:', error);
-      Alert.alert('Error', 'Terjadi kesalahan saat mengubah password.');
+        },
+      ]);
+    } catch (error) { //11
+      showError('Terjadi kesalahan saat mengubah password.');
       setResettingPassword(false);
     }
-  };
+  }; //12
+  
+  
   
   return (
     <View style={styles.container}>

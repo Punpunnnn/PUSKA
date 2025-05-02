@@ -37,64 +37,55 @@ const OrderDetail = () => {
   const [foodQualityRating, setFoodQualityRating] = useState(0);
   const [review, setReview] = useState('');
   const [userRating, setUserRating] = useState(null);
-  const [contextError, setContextError] = useState(null);
-  
   const route = useRoute();
   const navigation = useNavigation();
   const id = route.params?.id;
   const { getOrder, updateOrderStatus } = useOrderContext();
-  
-  // Safely access rating context with error handling
   const ratingContext = useRatingContext();
 
-  useEffect(() => {
-    // Check if rating context is available
-    if (!ratingContext) {
-      console.error("Rating context is undefined!");
-      setContextError("Rating functionality unavailable");
-    }
-  }, [ratingContext]);
-
-  const fetchOrder = async () => {
+// Perbaikan useEffect pertama
+useEffect(() => {
+  let isMounted = true;
+  
+  const loadOrder = async () => {
     try {
       setIsLoading(true);
       const orderData = await getOrder(id);
-      setOrder(orderData);
       
-      // Fetch rating after order is loaded if context is available
-      if (orderData.status === 'COMPLETED' && ratingContext && ratingContext.rating) {
-        fetchRatingData(orderData);
-      }
-    } catch (error) {
-      console.error("Error fetching order:", error);
-      Alert.alert("Error", "Failed to load order details");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      if (isMounted) {
+        setOrder(orderData);
 
-  const fetchRatingData = async (orderData) => {
-    try {
-      // Only try to fetch ratings if the context is available
-      if (ratingContext && ratingContext.getRatingByOrderId) {
-        const rating = await ratingContext.getRatingByOrderId(id);
-        setUserRating(rating);
-        
-        if (rating) {
-          setServiceRating(rating.service_rating);
-          setFoodQualityRating(rating.food_quality_rating);
-          setReview(rating.review || '');
+        if (orderData?.order_status === 'COMPLETED' && 
+            ratingContext?.getRatingByOrderId) {
+          const rating = await ratingContext.getRatingByOrderId(id);
+          if (isMounted) {
+            setUserRating(rating);
+            if (rating) {
+              setServiceRating(rating.service_rating);
+              setFoodQualityRating(rating.food_quality_rating);
+              setReview(rating.review || '');
+            }
+          }
         }
       }
     } catch (error) {
-      console.error("Error fetching rating:", error);
-      // Non-critical error, don't show alert to user
+      console.error("Error in loadOrder:", error);
+      if (isMounted) {
+        Alert.alert("Error", "Failed to load order details");
+      }
+    } finally {
+      if (isMounted) {
+        setIsLoading(false);
+      }
     }
   };
-
-  useEffect(() => {
-    fetchOrder();
-  }, [id, getOrder]);
+  
+  loadOrder();
+  
+  return () => {
+    isMounted = false;
+  };
+}, [id, getOrder, ratingContext?.getRatingByOrderId]);
 
   const handleCancelOrder = () => {
     Alert.alert(
@@ -112,7 +103,6 @@ const OrderDetail = () => {
             try {
               setIsLoading(true);
               await updateOrderStatus(id, 'CANCELLED');
-              fetchOrder(); // Refresh order data
               Alert.alert("Success", "Your order has been cancelled");
               navigation.goBack();
             } catch (error) {
@@ -273,9 +263,7 @@ const OrderDetail = () => {
         {/* Rating section for completed orders */}
         {order.order_status === 'COMPLETED' && (
           <>
-            {contextError ? (
-              <Text style={styles.errorText}>{contextError}</Text>
-            ) : userRating ? (
+            {userRating ? (
               renderUserRating()
             ) : (
               <TouchableOpacity 

@@ -14,23 +14,21 @@ const useRealtimeRestaurant = (setRestaurants, setIsLoading, setError) => {
     }
     
     const fetchRestaurants = async () => {
-      try {
+      try { //1
         setIsLoading(true);
         const { data, error } = await supabase
           .from('restaurants')
           .select('*');
 
-        if (error) {
-          console.error('Error fetching restaurants:', error);
-          setError(error.message);
-        } else {
-          setRestaurants(data || []);
-          setError(null);
+        if (error) { //2
+          setError(error.message); //3
         }
-      } catch (err) {
+        setRestaurants(data || []); //4
+        setError(null);
+      } catch (err) { //5
         console.error('Unexpected error:', err);
         setError('Terjadi kesalahan saat mengambil data restoran');
-      } finally {
+      } finally { //6
         setIsLoading(false);
       }
     };
@@ -43,7 +41,7 @@ const useRealtimeRestaurant = (setRestaurants, setIsLoading, setError) => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'restaurants' },
-        (payload) => {
+        () => {
           fetchRestaurants();
         }
       )

@@ -1,28 +1,30 @@
 // Signup.js
 import { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Alert, Image } from 'react-native';
-import { useAuth } from '../../components/auth';
 import { useNavigation } from '@react-navigation/native';
+import { supabase } from '../../lib/supabase';
 
 const Signup = () => {
-  const { loading, signUpWithEmail } = useAuth();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation(); // Get the navigation object
 
-  const handleSignUp = async () => {
-    const error = await signUpWithEmail(username,email, password);
-  
-    if (!error) {
-      setTimeout(() => {
-        Alert.alert(
-          'Registrasi Berhasil!',
-          'Selamat datang di PUSKA!'
-        );
-      }, 500);
+    const handleSignUp = async () => {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: username
+          },
+        },
+      });
+
+    if (error) {
+        Alert.alert('Registrasi Gagal', error.message);
     } else {
-      Alert.alert('Registrasi Gagal', error.message || 'Terjadi kesalahan saat registrasi.');
+        Alert.alert('Registrasi Berhasil', 'Akun Anda telah berhasil dibuat');
     }
   };
 

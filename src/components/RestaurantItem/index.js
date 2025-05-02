@@ -9,17 +9,14 @@ const RestaurantItem = ({ restaurant }) => {
   const [serviceRating, setServiceRating] = useState(null);
 
   const fetchRatings = async () => {
-    const result = await getRestaurantRatings(restaurant.id);
+    // Gunakan false untuk menggunakan cache jika tersedia
+    const result = await getRestaurantRatings(restaurant.id, false);
     setServiceRating(result?.summary?.avgServiceRating);
   };
-  
+
   useEffect(() => {
     fetchRatings();
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchRatings();
-    });
-    return unsubscribe;
-  }, [navigation, restaurant.id, getRestaurantRatings]);
+  }, [restaurant.id]);
 
   const onPress = () => {
     if (restaurant.is_open) {
