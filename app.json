@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "UnsiKantin",
-    "slug": "UnsiKantin",
-    "scheme": "UnsiKantin",
-    "deeplink": "true",
+    "name": "PUSKA",
+    "slug": "PUSKA",
+    "scheme": "PUSKA",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "package": "com.anonymous.UnsiKantin"
+      "package": "com.anonymous.puska"
     },
     "web": {
       "favicon": "./assets/favicon.png"
