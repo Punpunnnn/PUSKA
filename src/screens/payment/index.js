@@ -99,7 +99,7 @@ const QRISPaymentScreen = () => {
       }, (payload) => {
         if (payload.new.order_status !== orderStatus) {
           setOrderStatus(payload.new.order_status);
-          if (payload.new.order_status === 'NEW' || payload.new.order_status === 'PAID') {
+          if (payload.new.order_status === 'NEW') {
             handlePaymentSuccess(payload.new.order_status);
           }
         }
@@ -194,13 +194,13 @@ const QRISPaymentScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>QRIS Payment</Text>
-          <Text style={styles.subtitle}>Order #{orderId}</Text>
+          <Text style={styles.title}>Pembayaran QRIS</Text>
+          <Text style={styles.subtitle}>Pesanan #{orderId}</Text>
         </View>
 
         {!paymentComplete ? (
           <View style={styles.qrContainer}>
-            <Text style={styles.qrTitle}>Scan this QR code to complete your payment</Text>
+            <Text style={styles.qrTitle}>Pindai kode QR ini untuk menyelesaikan pembayaran Anda</Text>
 
             <View style={styles.qrCode}>
               <QRCode
@@ -212,44 +212,46 @@ const QRISPaymentScreen = () => {
             </View>
 
             <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>Total Amount:</Text>
+              <Text style={styles.amountLabel}>Total Pembayaran:</Text>
               <Text style={styles.amount}>Rp {totalAmount}</Text>
             </View>
 
             <View style={styles.timerContainer}>
-              <Text style={styles.timerLabel}>Time remaining:</Text>
+              <Text style={styles.timerLabel}>Waktu tersisa:</Text>
               <Text style={[styles.timer, timeLeft < 60 && styles.timerWarning]}>
                 {formatTime(timeLeft)}
               </Text>
             </View>
 
             <View style={styles.instructions}>
-              <Text style={styles.instructionsTitle}>How to pay:</Text>
-              <Text style={styles.instructionItem}>1. Open your mobile banking or e-wallet app</Text>
-              <Text style={styles.instructionItem}>2. Select the QRIS payment option</Text>
-              <Text style={styles.instructionItem}>3. Scan the QR code above</Text>
-              <Text style={styles.instructionItem}>4. Confirm the payment amount</Text>
-              <Text style={styles.instructionItem}>5. Complete the payment process in your app</Text>
+              <Text style={styles.instructionsTitle}>Cara Membayar:</Text>
+              <Text style={styles.instructionItem}>1. Buka aplikasi QRIS</Text>
+              <Text style={styles.instructionItem}>2. Pindai kode QR di atas</Text>
+              <Text style={styles.instructionItem}>3. Konfirmasi jumlah pembayaran</Text>
+              <Text style={styles.instructionItem}>4. Selesaikan proses pembayaran di aplikasi Anda</Text>
+              <TouchableOpacity style={styles.button} onPress={handlePaymentCallback}>
+                <Text style={styles.buttontext}>Tekan untuk menyegarkan ulang</Text>
+              </TouchableOpacity>
             </View>
 
           </View>
         ) : (
           <View style={styles.successContainer}>
-            <Text style={styles.successTitle}>Payment Successful!</Text>
+            <Text style={styles.successTitle}>Pembayaran Berhasil!</Text>
             <Text style={styles.successText}>
-              Your order has been placed successfully. Order status has been updated to "New".
+              Pesanan Anda telah berhasil dibuat. Status pesanan telah diperbarui menjadi "Baru".
             </Text>
-            <Text style={styles.orderIdText}>Order ID: #{orderId}</Text>
+            <Text style={styles.orderIdText}>ID Pesanan: #{orderId}</Text>
           </View>
         )}
 
         <View style={styles.statusContainer}>
-          <Text style={styles.statusLabel}>Order Status:</Text>
+          <Text style={styles.statusLabel}>Status Pesanan:</Text>
           <Text style={[
             styles.statusValue,
             orderStatus === 'NEW' ? styles.statusNew : styles.statusPending
           ]}>
-            {orderStatus}
+            {orderStatus === 'NEW' ? 'Baru' : 'Menunggu'}
           </Text>
         </View>
       </ScrollView>
@@ -392,6 +394,18 @@ const styles = StyleSheet.create({
   },
   statusValue: {
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  button: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttontext: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
   statusPending: {
