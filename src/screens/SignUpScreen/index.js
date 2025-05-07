@@ -8,23 +8,37 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading] = useState(false);
   const navigation = useNavigation(); // Get the navigation object
 
-    const handleSignUp = async () => {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: username
-          },
+  const handleSignUp = async () => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: username
         },
-      });
-
+      },
+    });
+  
     if (error) {
-        Alert.alert('Registrasi Gagal', error.message);
+      Alert.alert('Registrasi Gagal', error.message);
     } else {
-        Alert.alert('Registrasi Berhasil', 'Akun Anda telah berhasil dibuat');
+      // Ambil user ID setelah berhasil registrasi
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user.id;
+
+      const { error: coinsError } = await supabase
+        .from('profiles')
+        .upsert([{ id: userId, coins: 300 }], { onConflict: ['id'] });
+  
+      if (coinsError) {
+        console.error('Gagal menambahkan coins:', coinsError.message);
+        Alert.alert('Gagal Menambahkan Coins', 'Terdapat masalah saat menambahkan coins.');
+      } else {
+        Alert.alert('Registrasi Berhasil', 'Akun Anda telah berhasil dibuat dan Anda mendapatkan 300 coins!');
+      }
     }
   };
 
