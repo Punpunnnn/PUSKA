@@ -41,7 +41,7 @@ const Profile = () => {
     return <Text>Loading...</Text>; // tampilkan loading sementara
   }
   const handlePress = () => {
-    navigation.navigate("ChangePassword", { currentFullName: fullName });
+    navigation.navigate("ChangePassword", { currentFullName: profile.full_name });
   };
 
   const handleLogout = async () => {
@@ -97,7 +97,7 @@ const Profile = () => {
                   ]} 
                   onPress={handlePress}
                 >
-                  <Text style={styles.buttonText}>Update Profile</Text>
+                  <Text style={styles.buttonText}>Edit Profil</Text>
                 </Pressable>
               </View>
 
@@ -109,7 +109,7 @@ const Profile = () => {
                 onPress={handleLogout}
               >
                 <Ionicons name="log-out-outline" size={20} color="#fff" style={styles.buttonIcon} />
-                <Text style={styles.logoutButtonText}>Sign Out</Text>
+                <Text style={styles.logoutButtonText}>Keluar</Text>
               </Pressable>
             </>
           )}
@@ -122,7 +122,7 @@ const Profile = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FAF9F6",
+    backgroundColor: "#FCFCFC",
   },
   headerTitle: {
     fontSize: 24,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   statsCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#fcfcfc',
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
@@ -210,10 +210,10 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
   },
   coinValueWrapper: {
-    backgroundColor: '#6f8b43',
+    backgroundColor: '#5DA574',
     paddingVertical: 8,
     paddingHorizontal: 20,
-    borderRadius: 25,
+    borderRadius: 4,
   },
   coinsValue: {
     fontSize: 20,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   formCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#fcfcfc',
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   button: {
-    backgroundColor: '#6f8b43',
+    backgroundColor: '#5DA574',
     borderRadius: 10,
     paddingVertical: 15,
     paddingHorizontal: 20,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   logoutButton: {
-    backgroundColor: 'red',
+    backgroundColor: '#8A1538',
     borderRadius: 10,
     paddingVertical: 15,
     paddingHorizontal: 20,

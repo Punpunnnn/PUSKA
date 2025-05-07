@@ -15,8 +15,6 @@ const StarDisplay = ({ rating }) => (
 
 // Header restoran
 const RestaurantHeader = ({ restaurant }) => {
-  const navigation = useNavigation();
-
   return (
     <View style={styles.headerContainer}>
       <Image source={{ uri: restaurant.image }} style={styles.restaurantImage} />
@@ -33,35 +31,43 @@ const RestaurantReviewScreen = () => {
   const [ratings, setRatings] = useState([]);
   const [restaurant, setRestaurant] = useState(null);
 
-  useEffect(() => {
-    const fetchRatings = async () => {
-      const { ratings } = await getRestaurantRatings(restaurantId);
-      setRatings(ratings);
-    };
+  // Ambil data restoran dari ID
+useEffect(() => {
+  const fetchRestaurantData = async () => {
+    const { data, error } = await supabase
+      .from('restaurants')
+      .select('id, title, image')
+      .eq('id', restaurantId)
+      .single();
 
-    const fetchRestaurantData = async () => {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .select('id, title, image') // Ambil data restoran yang diperlukan
-        .eq('id', restaurantId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching restaurant data:', error);
-      } else {
-        setRestaurant(data);
-      }
-    };
-
-    if (restaurantId) {
-      fetchRatings();
-      fetchRestaurantData();
+    if (error) {
+      console.error('Error fetching restaurant data:', error);
+    } else {
+      setRestaurant(data);
     }
-  }, [restaurantId]);
+  };
+
+  if (restaurantId) {
+    fetchRestaurantData();
+  }
+}, [restaurantId]);
+
+// Setelah restaurant tersedia, ambil rating
+useEffect(() => {
+  const fetchRatings = async () => {
+    if (!restaurant?.id) return;
+    const result = await getRestaurantRatings(restaurant.id);
+    if (result?.ratings) {
+      setRatings(result.ratings);
+    }
+  };
+
+  fetchRatings();
+}, [restaurant?.id]);
 
   const renderItem = ({ item }) => (
     <View style={styles.reviewCard}>
-      <Text style={styles.userName}>{item.users.full_name}</Text>
+      <Text style={styles.userName}>{item.users?.full_name || 'Anonim'}</Text>
       <View style={styles.ratingRow}>
         <Text>Makanan:</Text>
         <StarDisplay rating={item.food_quality_rating} />

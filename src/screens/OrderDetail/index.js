@@ -8,6 +8,7 @@ import { useOrderContext } from '../../context/OrderContext';
 import { useRatingContext } from '../../context/RatingContext';
 import BasketDishItem from '../../components/BasketDishItem';
 import OrderDetailHeader from './header';
+import { Ionicons } from '@expo/vector-icons';
 
 // Separate StarRating component for reusability
 const StarRating = ({ rating, setRating, size = 30, disabled = false }) => {
@@ -55,7 +56,7 @@ useEffect(() => {
       if (isMounted) {
         setOrder(orderData);
 
-        if (orderData?.order_status === 'COMPLETED' && 
+        if (orderData?.status === 'COMPLETED' && 
             ratingContext?.getRatingByOrderId) {
           const rating = await ratingContext.getRatingByOrderId(id);
           if (isMounted) {
@@ -121,25 +122,24 @@ useEffect(() => {
   };
 
   const handleSubmitRating = async () => {
+    if (!order?.restaurantId) {
+      Alert.alert("Error", "Data restoran tidak ditemukan.");
+      return;
+    }
     if (!ratingContext || !ratingContext.submitRating) {
       Alert.alert("Error", "Rating functionality is not available");
       return;
     }
     
-    if (serviceRating === 0 || foodQualityRating === 0) {
-      Alert.alert("Error", "Please provide ratings for both service and food quality");
-      return;
-    }
-    
     try {
       setIsLoading(true);
-      await ratingContext.submitRating(id, order.restaurants_id, {
+      await ratingContext.submitRating(id, order.restaurantId, {
         serviceRating,
         foodQualityRating,
         review
       });
       
-      await fetchRatingData(order);
+      await ratingContext.getRatingByOrderId(id);
       setShowRatingModal(false);
       Alert.alert("Success", "Your rating has been submitted");
     } catch (error) {
@@ -149,7 +149,6 @@ useEffect(() => {
       setIsLoading(false);
     }
   };
-
   const renderItem = ({ item }) => (
     <BasketDishItem 
       basketDish={{
@@ -161,7 +160,6 @@ useEffect(() => {
       }} 
     />
   );
-
   const renderRatingModal = () => {
     return (
       <Modal
@@ -172,7 +170,7 @@ useEffect(() => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Rate Your Order</Text>
+            <Text style={styles.modalTitle}>Buat ulasan anda</Text>
             
             <Text style={styles.ratingLabel}>Pelayanan Kantin</Text>
             <StarRating rating={serviceRating} setRating={setServiceRating} />
@@ -195,7 +193,7 @@ useEffect(() => {
                 style={styles.cancelButton}
                 onPress={() => setShowRatingModal(false)}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>Batalkan</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
@@ -206,7 +204,7 @@ useEffect(() => {
                 onPress={handleSubmitRating}
                 disabled={serviceRating === 0 || foodQualityRating === 0}
               >
-                <Text style={styles.buttonText}>Submit Review</Text>
+                <Text style={styles.buttonText}>Kirim ulasan</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -214,7 +212,6 @@ useEffect(() => {
       </Modal>
     );
   };
-
   const renderUserRating = () => {
     if (!userRating) return null;
     
@@ -235,12 +232,10 @@ useEffect(() => {
       </View>
     );
   };
-
   const renderFooter = () => {
     if (!order) return null;
     return (
       <View style={styles.footer}>
-        <View style={styles.divider} />
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Harga Asli:</Text>
           <Text style={styles.totalPrice}>
@@ -259,21 +254,44 @@ useEffect(() => {
             Rp.{order.total.toLocaleString("id-ID")}
           </Text>
         </View>
+
+        {renderActionButtons()}
         
         {/* Rating section for completed orders */}
-        {order.order_status === 'COMPLETED' && (
-          <>
-            {userRating ? (
-              renderUserRating()
-            ) : (
-              <TouchableOpacity 
-                style={styles.rateButton}
-                onPress={handleOpenRatingModal}
-              >
-                <Text style={styles.rateButtonText}>Rate This Order</Text>
-              </TouchableOpacity>
-            )}
-          </>
+        {order.status === 'COMPLETED' && !userRating && (
+    <View style={styles.footer}>
+      <TouchableOpacity 
+        style={styles.rateButton}
+        onPress={handleOpenRatingModal}
+      >
+        <Text style={styles.rateButtonText}>Buat Ulasan</Text>
+      </TouchableOpacity>
+    </View>
+  )}
+      </View>
+    );
+  };
+  const renderActionButtons = () => {
+    return (
+      <View style={styles.actionsContainer}>
+        {order.status === 'PENDING' && (
+          <TouchableOpacity 
+            style={styles.cancelOrderButton}
+            onPress={onPay}
+          >
+            <Ionicons name="close-circle" size={18} color="white" />
+            <Text style={styles.buttonText}>Pay</Text>
+          </TouchableOpacity>
+        )}
+
+        {order.status === 'NEW' && (
+          <TouchableOpacity 
+            style={styles.cancelOrderButton}
+            onPress={handleCancelOrder}
+          >
+            <Ionicons name="close-circle" size={18} color="white" />
+            <Text style={styles.buttonText}>Batalkan</Text>
+          </TouchableOpacity>
         )}
       </View>
     );
@@ -288,24 +306,33 @@ useEffect(() => {
   }
   
   return (
-    <>
-      <FlatList
-        style={styles.container}
-        ListHeaderComponent={() => (
-          <OrderDetailHeader 
-            order={order} 
-            onCancelOrder={order?.status === 'NEW' ? handleCancelOrder : null}
-            onPay={null}
-          />
-        )}
-        data={order?.dishes || []}
-        renderItem={renderItem}
-        ListFooterComponent={renderFooter}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.contentContainer}
-      />
-      {renderRatingModal()}
-    </>
+    <View style={styles.container}>
+    {/* Header tetap */}
+    <OrderDetailHeader order={order} />
+
+    {/* Scroll hanya untuk list pesanan */}
+    <FlatList
+      data={order?.dishes || []}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id.toString()}
+      contentContainerStyle={styles.contentContainer}
+      ListHeaderComponent={() => (
+        <Text style={styles.menuTitle}>Daftar pesanan</Text>
+      )}
+      ListFooterComponent={() => (
+        <>
+          {order.status === 'COMPLETED' && userRating && renderUserRating()}
+        </>
+      )} // spacing supaya gak ketutup footer
+    />
+
+    {/* Footer tetap */}
+    <View style={styles.footerFixed}>
+      {renderFooter()}
+    </View>
+
+    {renderRatingModal()}
+  </View>
   );
 };
 
@@ -323,7 +350,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footer: {
-    marginTop: 20,
+    marginTop: 10,
   },
   divider: {
     height: 1,
@@ -345,7 +372,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   rateButton: {
-    backgroundColor: '#B13636',
+    backgroundColor: '#5DA574',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -399,6 +426,31 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
     marginBottom: 15,
+  },
+  footerFixed: {
+    padding: 16,
+    paddingTop: 0,
+    borderTopWidth: 1,
+    borderColor: '#e0e0e0',
+    backgroundColor: '#fff',
+  },
+  menuTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#444',
+  },
+  actionsContainer: {
+    marginVertical: 10,
+  },
+  cancelOrderButton: {
+    backgroundColor: '#f44336',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 4,
   },
   modalButtons: {
     flexDirection: 'row',

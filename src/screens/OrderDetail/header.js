@@ -1,37 +1,10 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, Image} from 'react-native';
 import OrderStatusBadge from './badge';
 
-const OrderDetailHeader = ({ order, onCancelOrder, onPay }) => {
+const OrderDetailHeader = ({ order}) => {
   if (!order) {
     return null;
   }
-
-  const renderActionButtons = () => {
-    return (
-      <View style={styles.actionsContainer}>
-        {order.status === 'PENDING' && (
-          <TouchableOpacity 
-            style={styles.cancelButton}
-            onPress={onPay}
-          >
-            <Ionicons name="close-circle" size={18} color="white" />
-            <Text style={styles.buttonText}>Pay</Text>
-          </TouchableOpacity>
-        )}
-
-        {order.status === 'NEW' && (
-          <TouchableOpacity 
-            style={styles.cancelButton}
-            onPress={onCancelOrder}
-          >
-            <Ionicons name="close-circle" size={18} color="white" />
-            <Text style={styles.buttonText}>Cancel Order</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
 
   return (
     <View style={styles.page}>
@@ -50,10 +23,7 @@ const OrderDetailHeader = ({ order, onCancelOrder, onPay }) => {
           </Text>
         </View>
         
-        {renderActionButtons()}
-        
         <View style={styles.divider} />
-        <Text style={styles.menuTitle}>Your Order</Text>
       </View>
     </View>
   );
@@ -65,6 +35,7 @@ const styles = StyleSheet.create({
   },
   restaurantContainer: {
     padding: 16,
+    paddingBottom: 0,
   },
   image: {
     width: '100%',
@@ -86,32 +57,6 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 8,
     fontSize: 14,
-  },
-  actionsContainer: {
-    marginVertical: 10,
-  },
-  cancelButton: {
-    backgroundColor: '#f44336',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 4,
-  },
-  completeButton: {
-    backgroundColor: '#4caf50',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 4,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '600',
-    marginLeft: 8,
   },
   divider: {
     height: 1,

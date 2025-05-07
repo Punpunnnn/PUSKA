@@ -145,6 +145,8 @@ const OrderContextProvider = ({ children }) => {
         original_total: order.original_total,
         notes: order.notes,
         type: order.type,
+        used_coin: order.used_coin,
+        restaurantId: order.restaurants_id,
         created_at: order.created_at,
         restaurant: order.Restaurant,
         dishes: orderDishes.map(({ id, quantity, menus }) => ({

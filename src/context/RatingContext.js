@@ -118,8 +118,10 @@ export const RatingProvider = ({ children }) => {
       avgFoodRating: totalFoodRating / totalReviews || 0,
       totalReviews
     };
+
+    const results = { ratings: data, summary };
     
-    setRatingsCache(prev => ({...prev, [restaurantId]: summary}));
+    setRatingsCache(prev => ({...prev, [restaurantId]: results}));
     
     return summary;
   }, [fetchData, ratingsCache]);

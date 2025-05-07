@@ -98,7 +98,9 @@ export default function Homescreen() {
       <FlatList
         contentContainerStyle={{ padding:16 }}
         data={filteredRestaurants}
-        renderItem={({ item }) => <RestaurantItem restaurant={item} />}
+        renderItem={({ item }) => <RestaurantItem 
+        restaurant={item}
+        menus={menuItems.filter(menu => menu.restaurants_id === item.id)} />}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
         ListEmptyComponent={
@@ -120,10 +122,10 @@ export default function Homescreen() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: "#FAF9F6",
+    backgroundColor: "#FCFCFC",
   },
   headerContainer: {
-    backgroundColor: '#88362F',
+    backgroundColor: '#8A1538',
     borderBottomLeftRadius:8,
     borderBottomRightRadius:8,
   },
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
-    color: 'white',
+    color: '#fcfcfc',
   },
   searchContainer: {
     width:"90%",

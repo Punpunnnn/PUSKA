@@ -152,15 +152,15 @@ const onCreateOrder = async () => {
 
 
         <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Notes</Text>
-          <TextInput style={styles.notesInput} placeholder="Tambahkan notes (opsional)" value={notes} onChangeText={updateNotes} />
+        <Text style={styles.sectionTitle}>Catatan</Text>
+          <TextInput style={styles.notesInput} placeholder="Tambahkan catatan (opsional)" value={notes} onChangeText={updateNotes} />
         </View>
       </ScrollView>
       
       <View style={styles.footer}>
         <Text style={styles.totalPrice}>Rp.{discountedPrice.toLocaleString('id-ID')}</Text>
-        <Pressable onPress={onCreateOrder} style={styles.buttonyes}><Text style={styles.buttonText}>Place Order</Text></Pressable>
-        <Pressable onPress={onClearBasket} style={styles.buttonno}><Text style  ={styles.buttonText}>Clear Basket</Text></Pressable>
+        <Pressable onPress={onCreateOrder} style={styles.buttonyes}><Text style={styles.buttonText}>Buat Pesanan</Text></Pressable>
+        <Pressable onPress={onClearBasket} style={styles.buttonno}><Text style  ={styles.buttonText}>Hapus Keranjang</Text></Pressable>
       </View>
     </SafeAreaView>
   );

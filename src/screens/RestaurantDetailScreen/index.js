@@ -145,9 +145,10 @@ const RestaurantDetailScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FAF9F6",
+        backgroundColor: "#FCFCFC",
         borderBottomColor: "lightgray",
         borderBottomWidth: 1,
+        color: "#333333",
     },
     IconContainer: {
         position: "absolute",
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
       },
       button: {
-        backgroundColor: "#88362F",
+        backgroundColor: "#5DA574",
         padding: 20,
         alignItems: "center",
         width: '100%',

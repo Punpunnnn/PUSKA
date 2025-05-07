@@ -10,14 +10,14 @@ const RestaurantHeader = ({ restaurant }) => {
   const [totalUser, setTotalUser] = useState(null);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const fetchRatings = async () => {
-      const result = await getRestaurantRatings(restaurant.id);
-      setServiceRating(result?.avgServiceRating);
-      setTotalUser(result?.totalReviews);
-    };
-    fetchRatings();
-  }, [restaurant.id]);
+    useEffect(() => {
+      const fetchRatings = async () => {
+        const result = await getRestaurantRatings(restaurant.id);
+        setServiceRating(result?.summary?.avgServiceRating);
+        setTotalUser(result?.summary?.totalReviews);
+      };
+      fetchRatings();
+    }, [restaurant.id]);
 
   const goToReviewPage = () => {
     navigation.navigate("RestaurantReview", { restaurantId: restaurant.id });
@@ -33,21 +33,21 @@ const RestaurantHeader = ({ restaurant }) => {
             <Text style={styles.subtitle}>{restaurant.subtitle}</Text>
           </View>
 
-          <Pressable onPress={goToReviewPage} style={styles.ratingBox}>
-            <View style={styles.ratingTop}>
-              <Ionicons name="star" size={16} color="white" />
-              <Text style={styles.ratingText}>
-              {typeof serviceRating === 'number' ? serviceRating.toFixed(1) : "?"}
-              </Text>
-            </View>
-            <Text style={styles.reviewText}>
-              {totalUser !== null
-                ? totalUser > 10
+          {typeof serviceRating !== null && totalUser !== null && (
+            <Pressable onPress={goToReviewPage} style={styles.ratingBox}>
+              <View style={styles.ratingTop}>
+                <Ionicons name="star" size={16} color="white" />
+                <Text style={styles.ratingText}>
+                  {serviceRating.toFixed(1)}
+                </Text>
+              </View>
+              <Text style={styles.reviewText}>
+                {totalUser > 10
                   ? "+10 Reviews"
-                  : `${totalUser} Review${totalUser > 1 ? "s" : "0"}`
-                : "?"}
-            </Text>
-          </Pressable>
+                  : `${totalUser} Review${totalUser > 1 ? "s" : ""}`}
+              </Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </View>
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
-    backgroundColor: "#FAF9F6",
+    backgroundColor: "#FCFCFC",
     shadowOpacity: 0.2,
     shadowColor: "black",
     shadowOffset: { width: 0, height: 2 },
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   ratingBox: {
-    backgroundColor: '#88362F',
+    backgroundColor: '#8A1538',
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 10,

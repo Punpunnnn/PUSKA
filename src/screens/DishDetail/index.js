@@ -93,10 +93,14 @@ const DishDetailsScreen = () => {
             />
           </View>
         </View>
-  
+
+        <View style={styles.quantityRow}>
+          <Text style={styles.bold}>Total Harga</Text>
+          <Text style={styles.total}>Rp.{getTotal().toLocaleString("id-ID")}</Text>
+        </View>
         <Pressable onPress={onAddToBasket} style={styles.button}>
           <Text style={styles.buttonText}>
-            Add {quantity} to basket - Rp.{getTotal().toLocaleString("id-ID")}
+            Masukkan ke Keranjang 
           </Text>
         </Pressable>
       </View>
@@ -161,11 +165,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
   button: {
-    backgroundColor: '#88362F',
+    backgroundColor: '#8A1538',
     marginTop: 10,
     padding: 15,
     alignItems: 'center',
     borderRadius: 8,
+  },
+  total: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   buttonText: {
     color: 'white',

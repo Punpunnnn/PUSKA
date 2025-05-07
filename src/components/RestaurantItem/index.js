@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRatingContext } from "../../context/RatingContext"; // Adjust the import path as necessary
-const RestaurantItem = ({ restaurant }) => {
+const RestaurantItem = ({ restaurant, menus }) => {
   const navigation = useNavigation();
   const { getRestaurantRatings } = useRatingContext();
   const [serviceRating, setServiceRating] = useState(null);
+  const isClosed = !restaurant.is_open;
+  const noMenu = menus.length === 0;
 
   const fetchRatings = async () => {
     // Gunakan false untuk menggunakan cache jika tersedia
@@ -19,7 +21,7 @@ const RestaurantItem = ({ restaurant }) => {
   }, [restaurant.id]);
 
   const onPress = () => {
-    if (restaurant.is_open) {
+    if (restaurant.is_open && !noMenu) {
       navigation.navigate("Restaurant", { id: restaurant.id });
     }
   };
@@ -28,16 +30,18 @@ const RestaurantItem = ({ restaurant }) => {
     <Pressable onPress={onPress} style={styles.restaurantContainer}>
       <View style={{ position: "relative" }}>
         {/* Bagian yang redup */}
-        <View style={!restaurant.is_open && { opacity: 0.5 }}>
+        <View style={(isClosed || noMenu) && { opacity: 0.5 }}>
           <Image source={{ uri: restaurant.image }} style={styles.image} />
 
           <View style={styles.column}>
-            <View style={styles.rating}>
-              <Ionicons name="star" size={18} color="orange" />
-              <Text style={styles.fontRating}>
-              {typeof serviceRating === 'number' ? serviceRating.toFixed(1) : "?"}
-              </Text>
-            </View>
+            {typeof serviceRating === 'number' && (
+              <View style={styles.rating}>
+                <Ionicons name="star" size={18} color="orange" />
+                <Text style={styles.fontRating}>
+                  {serviceRating.toFixed(1)}
+                </Text>
+              </View>
+            )}
 
             <View style={{ marginLeft: 5 }}>
               <Text style={styles.title}>{restaurant.title}</Text>
@@ -46,11 +50,17 @@ const RestaurantItem = ({ restaurant }) => {
           </View>
         </View>
 
-        {!restaurant.is_open && (
+        {isClosed && (
           <View style={styles.overlay}>
             <Text style={styles.closedText}>TUTUP</Text>
           </View>
         )}
+
+        {noMenu && (
+        <View style={styles.overlay}>
+          <Text style={styles.closedText}>BELUM ADA MENU</Text>
+        </View>
+       )}
       </View>
     </Pressable>
   );
@@ -85,7 +95,7 @@ const styles = StyleSheet.create({
     shadowColor: "black",
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    backgroundColor: "#FAF9F6", // Ensure the background color is set for shadow to be visible
+    backgroundColor: "#FCFCFC", // Ensure the background color is set for shadow to be visible
     elevation: 3, // For Android shadow
     marginBottom: 20,
   },
@@ -99,10 +109,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "500",
     marginVertical: 5,
+    color: "#333333",
   },
   subtitle: {
     fontSize: 16,
-    color: "grey",
+    color: "#333333",
+    opacity: 0.7,
     marginBottom: 10,
   },
   column: {
@@ -118,7 +130,7 @@ const styles = StyleSheet.create({
   },
   fontRating: {
     marginRight: 5,
-    color: "black",
+    color: "#333333",
     fontSize: 18,
     fontWeight: "bold",
   },

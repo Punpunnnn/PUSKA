@@ -7,7 +7,7 @@ const DishListItem = ({ menus, rating }) => {
 
     const handlePress = () => {
       if (menus.is_available) {
-        navigation.navigate('Dish', { id: menus.id });
+        navigation.navigate('Detail Makanan', { id: menus.id });
       }
     };
   
@@ -27,7 +27,7 @@ const DishListItem = ({ menus, rating }) => {
                     </View>
                   )}
                   <Text style={styles.desc} numberOfLines={2}>
-                    {menus.description}
+                    {menus.description || 'Tidak ada deskripsi'}
                   </Text>
                   <Text style={styles.price}>
                     Rp.{menus.price.toLocaleString('id-ID')}
