@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "PUSKA",
     slug: "UnsiKantin",
-    scheme: "PUSKA",
+    scheme: "puska",
     version: "1.0.0",
     orientation: "portrait",
     userInterfaceStyle: "light",
