@@ -7,8 +7,17 @@ import ClearHistoryButton from '../../components/ClearHistory';
 const OrderScreen = () => {
     const { orders } = useOrderContext();
     const [activeTab, setActiveTab] = useState('ongoing');
-    const ongoingOrders = orders.filter(order => order.order_status !== 'COMPLETED');
-    const completedOrders = orders.filter(order => order.order_status === 'COMPLETED' && order.is_deleted === false);
+    const ongoingOrders = orders.filter(order => 
+        order.order_status !== 'COMPLETED' && 
+        order.order_status !== 'CANCELLED' && 
+        order.order_status !== 'EXPIRED'
+    );
+    const completedOrders = orders.filter(order => 
+        (order.order_status === 'COMPLETED' || 
+        order.order_status === 'CANCELLED' || 
+        order.order_status === 'EXPIRED')  && 
+        order.is_deleted === false
+    );
 
     return (
         <View style={styles.container}>

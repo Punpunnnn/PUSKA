@@ -20,7 +20,7 @@ const QRISPaymentScreen = () => {
 
   const [orderId, setOrderId] = useState(routeOrderId || '');
   const [totalAmount, setTotalAmount] = useState(routeTotalAmount || '');
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(10); // 5 minutes in seconds
   const [orderStatus, setOrderStatus] = useState('PENDING');
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -139,8 +139,8 @@ const QRISPaymentScreen = () => {
         setTimeLeft(prevTime => {
           if (prevTime <= 1) {
             clearInterval(countdownTimer);
-            Alert.alert('Payment Expired', 'Your payment session has expired. Please try again.');
             handlePaymentExpired();
+
             return 0;
           }
           return prevTime - 1;
@@ -166,18 +166,42 @@ const QRISPaymentScreen = () => {
       .eq('id', orderId);
 
     setOrderStatus('EXPIRED');
-    navigation.navigate('Orders');
+    Alert.alert(
+      'Payment Expired',
+      'Your payment session has expired. Please try again.',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Orders' }],
+            });
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+    
   };
   const handlePaymentSuccess = async (status) => {
     setPaymentComplete(true);
-
+  
     setTimeout(() => {
-      navigation.navigate('Orders', {
-        orderId,
-        order_status: status || 'NEW',
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'Orders',
+            params: {
+              orderId,
+              order_status: status || 'NEW',
+            },
+          },
+        ],
       });
     }, 2000);
-  };
+  };  
   const handlePaymentCallback = async () => {
     if (!orderId) return;
 

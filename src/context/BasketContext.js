@@ -16,7 +16,7 @@ const BasketContextProvider = ({ children }) => {
     0
   );
 
-  // Fetch or create basket
+   
   const getOrCreateBasket = async () => {
     if (!dbUser || !restaurant) return null;
 
@@ -28,11 +28,11 @@ const BasketContextProvider = ({ children }) => {
         .eq("profiles_id", dbUser.id)
         .single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      if (fetchError && fetchError.code !== 'PGRST116') {  
         throw fetchError;
       }
 
-      // If no basket exists, create one
+       
       if (!existingBasket) {
         const { data: newBasket, error: createError } = await supabase
           .from("baskets")
@@ -85,7 +85,7 @@ const BasketContextProvider = ({ children }) => {
     initializeBasket();
   }, [dbUser, restaurant]);
 
-  // Add or update dish quantity
+   
   const addDishToBasket = async (menu, quantity) => {
     if (!dbUser || !restaurant) return;
 
@@ -94,13 +94,13 @@ const BasketContextProvider = ({ children }) => {
       let currentBasket = basket || await getOrCreateBasket();
       if (!currentBasket) throw new Error("Could not create basket");
 
-      // Check if dish already exists in basket
+       
       const existingDishIndex = basketDishes.findIndex(
         dish => dish.menus_id === menu.id
       );
 
       if (existingDishIndex !== -1) {
-        // Update existing dish quantity
+         
         const existingDish = basketDishes[existingDishIndex];
         const newQuantity = existingDish.quantity + quantity;
 
@@ -117,7 +117,7 @@ const BasketContextProvider = ({ children }) => {
         updatedDishes[existingDishIndex] = data;
         setBasketDishes(updatedDishes);
       } else {
-        // Add new dish
+         
         const { data, error } = await supabase
           .from("basket_items")
           .insert([{
@@ -142,7 +142,7 @@ const BasketContextProvider = ({ children }) => {
     setIsLoading(true);
     try {
       if (newQuantity <= 0) {
-        // Remove dish if quantity is 0 or negative
+         
         const { error } = await supabase
           .from("basket_items")
           .delete()
@@ -151,7 +151,7 @@ const BasketContextProvider = ({ children }) => {
         if (error) throw error;
         setBasketDishes(basketDishes.filter(dish => dish.id !== basketDishId));
       } else {
-        // Update quantity
+         
         const { data, error } = await supabase
           .from("basket_items")
           .update({ quantity: newQuantity })
@@ -173,7 +173,7 @@ const BasketContextProvider = ({ children }) => {
 
   const clearBasket = async () => {
     try {
-      // Hapus basket dari database
+       
       const { error } = await supabase
         .from("baskets")
         .delete()
@@ -184,7 +184,7 @@ const BasketContextProvider = ({ children }) => {
         return false;
       }
       
-      // Reset state local
+       
       setBasketDishes([]);
       return true;
     } catch (error) {

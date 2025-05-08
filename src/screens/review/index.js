@@ -6,14 +6,14 @@ import { supabase } from '../../lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-// Komponen untuk menampilkan rating bintang
+ 
 const StarDisplay = ({ rating }) => (
   <Text style={styles.stars}>
     {[1, 2, 3, 4, 5].map(star => (star <= rating ? '★' : '☆'))}
   </Text>
 );
 
-// Header restoran
+ 
 const RestaurantHeader = ({ restaurant }) => {
   return (
     <View style={styles.headerContainer}>
@@ -31,7 +31,7 @@ const RestaurantReviewScreen = () => {
   const [ratings, setRatings] = useState([]);
   const [restaurant, setRestaurant] = useState(null);
 
-  // Ambil data restoran dari ID
+   
 useEffect(() => {
   const fetchRestaurantData = async () => {
     const { data, error } = await supabase
@@ -52,7 +52,7 @@ useEffect(() => {
   }
 }, [restaurantId]);
 
-// Setelah restaurant tersedia, ambil rating
+ 
 useEffect(() => {
   const fetchRatings = async () => {
     if (!restaurant?.id) return;
@@ -113,7 +113,7 @@ useEffect(() => {
   );
 };
 
-// Styling untuk seluruh komponen
+ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,

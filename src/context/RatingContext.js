@@ -10,14 +10,14 @@ export const RatingProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [ratingsCache, setRatingsCache] = useState({});
 
-  // Helper function to get the current user ID
+   
   const getCurrentUserId = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
     return user.id;
   }, []);
 
-  // Generic helper for fetching data with error handling
+   
   const fetchData = useCallback(async (query) => {
     setIsLoading(true);
     setError(null);
@@ -34,7 +34,7 @@ export const RatingProvider = ({ children }) => {
     }
   }, []);
 
-  // Fungsi untuk menghapus cache rating untuk restoran tertentu
+   
   const invalidateCache = useCallback((restaurantId) => {
     setRatingsCache(prev => {
       const newCache = {...prev};
@@ -43,7 +43,7 @@ export const RatingProvider = ({ children }) => {
     });
   }, []);
 
-  // Submit a new rating or update existing one
+   
   const submitRating = useCallback(async (orderId, restaurantId, ratingData) => {
     try {
       const userId = await getCurrentUserId();
@@ -58,7 +58,7 @@ export const RatingProvider = ({ children }) => {
         }).select()
       );
       
-      // Invalidate cache setelah submit rating baru
+       
       invalidateCache(restaurantId);
       
       return result;
@@ -68,7 +68,7 @@ export const RatingProvider = ({ children }) => {
     }
   }, [getCurrentUserId, fetchData, invalidateCache]);
 
-  // Get rating for a specific order
+   
   const getRatingByOrderId = useCallback(async (orderId) => {
     return fetchData(
       supabase.from('ratings').select('*').eq('order_id', orderId).single()
@@ -126,14 +126,14 @@ export const RatingProvider = ({ children }) => {
     return summary;
   }, [fetchData, ratingsCache]);
 
-  // Expose invalidateCache jika perlu digunakan dari luar Context
+   
   const value = React.useMemo(() => ({
     isLoading,
     error,
     submitRating,
     getRatingByOrderId,
     getRestaurantRatings,
-    invalidateCache  // Export fungsi ini juga
+    invalidateCache   
   }), [isLoading, error, submitRating, getRatingByOrderId, getRestaurantRatings, invalidateCache]);
 
   return <RatingContext.Provider value={value}>{children}</RatingContext.Provider>;

@@ -23,13 +23,13 @@ export default {
       }
     },
     runtimeVersion: {
-      policy: "appVersion" // Menggunakan policy berdasarkan versi aplikasi
+      policy: "appVersion"
     },
     updates: {
       enabled: true,
-      url: "https://u.expo.dev/aa15121b-0722-434f-90c7-04478c450b84", // URL pembaruan
-      channelName: "default", // Channel yang digunakan untuk pembaruan
-      platform: ["android"] // Platform yang didukung
+      url: "https://u.expo.dev/aa15121b-0722-434f-90c7-04478c450b84", 
+      channelName: "default",
+      platform: ["android"] 
     }
   }
 };

@@ -21,12 +21,12 @@ const HomeTab = () => {
           }
           return { display: "flex" };
         })(route),
-        tabBarActiveTintColor: '#800000', // Active tab color
-        tabBarInactiveTintColor: '#6c757d', // Inactive tab color
+        tabBarActiveTintColor: '#800000',  
+        tabBarInactiveTintColor: '#6c757d',  
       })}
     >
       <Tab.Screen
-        name="Hello"
+        name="Homes"
         component={HomeStackNavigator}
         options={{
           tabBarIcon: ({ color }) => (
@@ -36,8 +36,8 @@ const HomeTab = () => {
         }}
         listeners={({ navigation }) => ({
           tabPress: e => {
-            e.preventDefault(); // Prevent tab switch before logic runs
-            navigation.navigate('Hello', { screen: 'Home' }); // Navigate to Home screen in HomeStack
+            e.preventDefault();  
+            navigation.navigate('Homes', { screen: 'Home' });  
           },
         })}
       />
@@ -52,7 +52,7 @@ const HomeTab = () => {
         }}
         listeners={({ navigation }) => ({
           tabPress: () => {
-            navigation.navigate('Order', { screen: 'Orders' }); // Navigate to Orders in OrderStack
+            navigation.navigate('Order', { screen: 'Orders' });  
           },
         })}
       />

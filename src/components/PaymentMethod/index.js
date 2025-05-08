@@ -5,7 +5,7 @@ import QRCode from 'react-native-qrcode-svg';
 const PaymentMethodModal = ({ visible, onClose, onSelectMethod, totalPrice }) => {
     const [selectedMethod, setSelectedMethod] = useState(null);
     const [qrData, setQrData] = useState(null);
-    const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+    const [timeLeft, setTimeLeft] = useState(600);  
 
     useEffect(() => {
         let timer;
@@ -24,7 +24,7 @@ const PaymentMethodModal = ({ visible, onClose, onSelectMethod, totalPrice }) =>
     }, [selectedMethod, timeLeft]);
 
     const generateQRData = () => {
-        // This is a simplified example - you should implement proper QRIS format
+         
         return JSON.stringify({
             amount: totalPrice,
             timestamp: new Date().toISOString(),

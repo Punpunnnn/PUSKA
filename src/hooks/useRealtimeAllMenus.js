@@ -41,7 +41,7 @@ const useRealtimeMenus = (setMenuItems, setIsLoading, setError) => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'menus' },
         (payload) => {
-          fetchMenus(); // Refresh data kalau ada perubahan
+          fetchMenus();  
         }
       )
       .subscribe();

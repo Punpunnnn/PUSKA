@@ -60,10 +60,10 @@ const RestaurantDetailScreen = () => {
     setRestaurant(data);
   }, [id, setBasketRestaurant]);
 
-  // Setup realtime menus listener
+   
   useRealtimeMenus(setMenus, id);
 
-  // Organize menus into categories on update
+   
   useEffect(() => {
     const categorized = menus.reduce((acc, menu) => {
       const category = menu.category || "Other";
@@ -80,12 +80,12 @@ const RestaurantDetailScreen = () => {
     setCategories(categoriesArray);
   }, [menus]);
 
-  // Fetch restaurant data on mount
+   
   useEffect(() => {
     fetchRestaurant();
   }, [fetchRestaurant]);
 
-  // Set restaurant into basket context
+   
   useEffect(() => {
     setBasketRestaurant(restaurant);
   }, [restaurant, setBasketRestaurant]);
@@ -109,7 +109,7 @@ const RestaurantDetailScreen = () => {
       )}
       keyExtractor={(item) => item.title}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 100 }} // Increased padding to make room for button
+      contentContainerStyle={{ paddingBottom: 100 }}  
       />
       
       <Ionicons 

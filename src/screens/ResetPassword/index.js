@@ -14,26 +14,26 @@ const ResetPasswordScreen = ({ route, navigation }) => {
     Alert.alert('Error', message || 'Terjadi kesalahan.');
   };
   
-  const handleResetPassword = async () => { //1
-    if (password !== confirmPassword) { // 2
-      showError('Password baru dan konfirmasi password tidak cocok.'); //3
+  const handleResetPassword = async () => {  
+    if (password !== confirmPassword) {  
+      showError('Password baru dan konfirmasi password tidak cocok.');  
       return;
     }
-    try { //4
+    try {  
       const { error: otpError } = await supabase.auth.verifyOtp({ 
         email,
         token: otp,
         type: 'recovery',
       });
   
-      if (otpError) return showError(otpError.message); //5 //6
+      if (otpError) return showError(otpError.message);  
   
-      setResettingPassword(true); //7
+      setResettingPassword(true);  
   
       const { error: updateError } = await supabase.auth.updateUser({ password });
-      if (updateError) return showError(updateError.message); //8 //9
+      if (updateError) return showError(updateError.message);  
   
-      await supabase.auth.signOut({ scope: 'global' }); //10
+      await supabase.auth.signOut({ scope: 'global' });  
   
       Alert.alert('Berhasil', 'Password berhasil diubah. Silakan login kembali dengan password baru Anda.', [
         {
@@ -44,18 +44,18 @@ const ResetPasswordScreen = ({ route, navigation }) => {
           },
         },
       ]);
-    } catch (error) { //11
+    } catch (error) {  
       showError('Terjadi kesalahan saat mengubah password.');
       setResettingPassword(false);
     }
-  }; //12
+  };  
   
   
   
   return (
     <View style={styles.container}>
       <Image
-        source={require('../../../assets/Password recovery.png')} // ubah path jika berbeda
+        source={require('../../../assets/Password recovery.png')}  
         style={styles.image}
       />
 
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#800000', // warna maroon UnsiKantin
+    color: '#800000',  
   },
   description: {
     width: '80%',
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   subbab: {
     fontSize: 16,
     fontWeight: '500',
-    paddingLeft: '10%', // Align with TextInput
+    paddingLeft: '10%',  
     marginBottom: 8,
   },
   input: {

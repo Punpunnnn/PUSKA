@@ -2,7 +2,7 @@ import {View, Text, StyleSheet, Image, Pressable} from "react-native";
 import { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRatingContext } from "../../context/RatingContext"; // Adjust the import path as necessary
+import { useRatingContext } from "../../context/RatingContext";  
 const RestaurantItem = ({ restaurant, menus }) => {
   const navigation = useNavigation();
   const { getRestaurantRatings } = useRatingContext();
@@ -11,7 +11,7 @@ const RestaurantItem = ({ restaurant, menus }) => {
   const noMenu = menus.length === 0;
 
   const fetchRatings = async () => {
-    // Gunakan false untuk menggunakan cache jika tersedia
+     
     const result = await getRestaurantRatings(restaurant.id, false);
     setServiceRating(result?.avgServiceRating);
   };
@@ -95,8 +95,8 @@ const styles = StyleSheet.create({
     shadowColor: "black",
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    backgroundColor: "#FCFCFC", // Ensure the background color is set for shadow to be visible
-    elevation: 3, // For Android shadow
+    backgroundColor: "#FCFCFC",  
+    elevation: 3,  
     marginBottom: 20,
   },
   image: {

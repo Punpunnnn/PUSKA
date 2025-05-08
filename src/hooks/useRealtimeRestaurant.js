@@ -6,7 +6,7 @@ const useRealtimeRestaurant = (setRestaurants, setIsLoading, setError) => {
   const { authUser, resettingPassword } = useAuthContext();
   
   useEffect(() => {
-    // Skip fetching if user is resetting password or not authenticated
+     
     if (resettingPassword || !authUser) {
       setRestaurants([]);
       setIsLoading(false);
@@ -14,28 +14,28 @@ const useRealtimeRestaurant = (setRestaurants, setIsLoading, setError) => {
     }
     
     const fetchRestaurants = async () => {
-      try { //1
+      try {  
         setIsLoading(true);
         const { data, error } = await supabase
           .from('restaurants')
           .select('*');
 
-        if (error) { //2
-          setError(error.message); //3
+        if (error) {  
+          setError(error.message);  
         }
-        setRestaurants(data || []); //4
+        setRestaurants(data || []);  
         setError(null);
-      } catch (err) { //5
+      } catch (err) {  
         console.error('Unexpected error:', err);
         setError('Terjadi kesalahan saat mengambil data restoran');
-      } finally { //6
+      } finally {  
         setIsLoading(false);
       }
     };
 
     fetchRestaurants();
 
-    // Only set up subscription if authenticated and not resetting password
+     
     const subscription = supabase
       .channel('realtime:restaurants')
       .on(
@@ -48,7 +48,7 @@ const useRealtimeRestaurant = (setRestaurants, setIsLoading, setError) => {
       .subscribe();
 
     return () => {
-      // Clean up subscription when component unmounts or auth state changes
+       
       if (subscription) {
         supabase.removeChannel(subscription);
       }

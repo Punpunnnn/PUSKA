@@ -35,11 +35,11 @@ const OrderContextProvider = ({ children }) => {
     setOrders(data);
   };
 
-  // Setup realtime order untuk user
+   
   useEffect(() => {
     if (!dbUser?.id) return;
   
-    fetchOrders(); // Initial fetch
+    fetchOrders();  
   
     const subscription = supabase
       .channel("user-orders-" + dbUser.id)
@@ -52,7 +52,7 @@ const OrderContextProvider = ({ children }) => {
           filter: `user_id=eq.${dbUser.id}`,
         },
         () => {
-          fetchOrders(); // Refresh orders saat ada perubahan
+          fetchOrders();  
         }
       )
       .subscribe();
@@ -205,14 +205,14 @@ const OrderContextProvider = ({ children }) => {
       .from("orders")
       .update({ is_deleted: true })
       .eq("user_id", dbUser.id)
-      .eq("order_status", "COMPLETED");
+      .in("order_status", ["COMPLETED", "CANCELLED", "EXPIRED"]);
 
     if (error) {
       console.error("Error deleting completed orders:", error);
       return false;
     }
 
-    await fetchOrders(); // Refresh
+    await fetchOrders();  
     return true;
   };
 

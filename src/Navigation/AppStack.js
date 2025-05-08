@@ -1,4 +1,4 @@
-// navigation/AppStack.js
+ 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeTab from './HomeTab';
 

@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
         height: 60,
         marginRight: 12,
         borderRadius: 8,
-        backgroundColor: '#f0f0f0' // Placeholder color while loading
+        backgroundColor: '#f0f0f0'  
     },
     contentContainer: {
         flex: 1,

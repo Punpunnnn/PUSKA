@@ -1,4 +1,4 @@
-// navigation/HomeStack.js
+ 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Homescreen from '../screens/HomeScreen';
 import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';

@@ -18,7 +18,7 @@ const DishDetailsScreen = () => {
         .from('menus')
         .select()
         .eq('id', id)
-        .single(); // Use .single() to get a single object
+        .single();  
 
       if (error) {
         console.error("Error fetching menu:", error);
@@ -50,10 +50,10 @@ const DishDetailsScreen = () => {
   };
 
   const getTotal = () => {
-    return (menu?.price * quantity); // Use optional chaining
+    return (menu?.price * quantity);  
   };
 
-  // Conditional rendering to avoid accessing properties of null
+   
   if (!menu) {
     return (
       <View style={styles.page}>

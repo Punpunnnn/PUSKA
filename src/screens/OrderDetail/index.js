@@ -10,7 +10,7 @@ import BasketDishItem from '../../components/BasketDishItem';
 import OrderDetailHeader from './header';
 import { Ionicons } from '@expo/vector-icons';
 
-// Separate StarRating component for reusability
+ 
 const StarRating = ({ rating, setRating, size = 30, disabled = false }) => {
   return (
     <View style={styles.starsContainer}>
@@ -44,15 +44,15 @@ const OrderDetail = () => {
   const { getOrder, updateOrderStatus } = useOrderContext();
   const ratingContext = useRatingContext();
 
-// Perbaikan useEffect pertama
+ 
 useEffect(() => {
   let isMounted = true;
-  
+
   const loadOrder = async () => {
     try {
       setIsLoading(true);
       const orderData = await getOrder(id);
-      
+
       if (isMounted) {
         setOrder(orderData);
 
@@ -80,13 +80,21 @@ useEffect(() => {
       }
     }
   };
-  
+
   loadOrder();
-  
+
   return () => {
     isMounted = false;
   };
 }, [id, getOrder, ratingContext?.getRatingByOrderId]);
+
+const onPay = () => {
+  navigation.navigate('Homes', {
+    screen: 'QRISPayment',
+    params: { orderId: id }
+  });
+};
+
 
   const handleCancelOrder = () => {
     Alert.alert(
@@ -323,7 +331,7 @@ useEffect(() => {
         <>
           {order.status === 'COMPLETED' && userRating && renderUserRating()}
         </>
-      )} // spacing supaya gak ketutup footer
+      )}  
     />
 
     {/* Footer tetap */}

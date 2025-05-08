@@ -38,7 +38,7 @@ const Profile = () => {
   }, []);
 
   if (loading || !profile) {
-    return <Text>Loading...</Text>; // tampilkan loading sementara
+    return <Text>Loading...</Text>;  
   }
   const handlePress = () => {
     navigation.navigate("ChangePassword", { currentFullName: profile.full_name });

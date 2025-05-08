@@ -45,7 +45,7 @@ const ChangePasswordScreen = () => {
 
      await supabase.auth.signOut({ scope: 'global' }); 
 
-      // Reset navigation ke Login
+       
       Alert.alert('Berhasil', 'Password berhasil diubah. Silakan login kembali.', [
         {
           text: 'OK',

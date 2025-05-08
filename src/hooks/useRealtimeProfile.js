@@ -1,4 +1,4 @@
-// src/hooks/useRealtimeProfile.js
+ 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
@@ -35,7 +35,7 @@ const useRealtimeProfile = (userId) => {
           event: '*',
           schema: 'public',
           table: 'profiles',
-          filter: `id=eq.${userId}`, // hanya untuk profile user ini
+          filter: `id=eq.${userId}`,  
         },
         (payload) => {
           if (payload.eventType === 'UPDATE') {

@@ -4,21 +4,21 @@ const OrderStatusBadge = ({ status }) => {
   const getStatusColor = () => {
     switch (status) {
       case 'PENDING':
-        return 'purple'; // Yellow
+        return 'purple';  
       case 'NEW':
-        return '#2196f3'; // Blue
+        return '#2196f3';  
       case 'COOKING':
-        return '#ff9800'; // Orange
+        return '#ff9800';  
       case 'READY_FOR_PICKUP':
-        return '#008a65'; // Green
+        return '#008a65';  
       case 'COMPLETED':
-        return '#8bc34a'; // Light Green
+        return '#8bc34a';  
       case 'CANCELLED':
-        return '#f44336'; // Red
+        return '#f44336';  
       case 'EXPIRED':
-        return 'gray'; // Deep Orange
+        return 'gray';  
       default:
-        return '#9e9e9e'; // Grey
+        return '#9e9e9e';  
     }
   };
 

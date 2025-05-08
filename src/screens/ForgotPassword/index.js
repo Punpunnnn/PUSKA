@@ -23,7 +23,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
         <Image
-          source={require('../../../assets/Password recovery.png')} // ubah path jika berbeda
+          source={require('../../../assets/Password recovery.png')}  
           style={styles.image}
         />
 
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#800000', // warna maroon UnsiKantin
+    color: '#800000',  
   },
   description: {
     width: '80%',
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   subbab: {
     fontSize: 16,
     fontWeight: '500',
-    paddingLeft: '10%', // Align with TextInput
+    paddingLeft: '10%',  
     marginBottom: 8,
   },
   input: {

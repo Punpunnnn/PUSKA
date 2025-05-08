@@ -25,7 +25,7 @@ const LoginScreen = ({ navigation }) => {
       <Text style={styles.subtitle}>Masuk ke akun anda</Text>
       <Text style={styles.subbab}>Email</Text>
       <TextInput
-        placeholder="Masukkan email anda" // Change placeholder to Email
+        placeholder="Masukkan email anda"  
         value={username}
         onChangeText={setUsername}
         style={styles.input}
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   subbab: {
     fontSize: 16,
     fontWeight: '500',
-    paddingLeft: '10%', // Align with TextInput
+    paddingLeft: '10%',  
     marginBottom: 8,
   },
   input: {

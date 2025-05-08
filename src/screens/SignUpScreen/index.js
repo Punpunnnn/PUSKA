@@ -1,4 +1,4 @@
-// Signup.js
+ 
 import { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -9,7 +9,7 @@ const Signup = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading] = useState(false);
-  const navigation = useNavigation(); // Get the navigation object
+  const navigation = useNavigation();  
 
   const handleSignUp = async () => {
     const { error } = await supabase.auth.signUp({
@@ -25,7 +25,7 @@ const Signup = () => {
     if (error) {
       Alert.alert('Registrasi Gagal', error.message);
     } else {
-      // Ambil user ID setelah berhasil registrasi
+       
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user.id;
 
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   subbab: {
     fontSize: 16,
     fontWeight: '500',
-    paddingLeft: '10%', // Align with TextInput
+    paddingLeft: '10%',  
     marginBottom: 8,
   },
   input: {

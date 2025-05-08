@@ -84,7 +84,7 @@ const AuthContextProvider = ({ children }) => {
     };
   }, [resettingPassword]);
 
-  // Fetch database user
+   
   useEffect(() => {
     const fetchDbUser = async () => {
       if (!authUser?.id) {

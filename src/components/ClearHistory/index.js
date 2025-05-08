@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, Text, Alert, StyleSheet, ActivityIndicator } from 'react-native';
-import { useOrderContext } from '../../context/OrderContext'; // Update with correct path
+import { useOrderContext } from '../../context/OrderContext';  
 
 const ClearHistoryButton = () => {
   const { clearCompletedOrders } = useOrderContext();

@@ -35,9 +35,9 @@ const toggleCoinUsage = () => {
   
   setIsUsingCoins(prev => !prev);
   if (!isUsingCoins) {
-    setCoinsToUse(Math.min(userCoins, Math.floor(totalPrice * 0.1))); // Maksimal 10% dari total harga
+    setCoinsToUse(Math.min(userCoins, Math.floor(totalPrice * 0.1)));  
   } else {
-    // Jika toggle dimatikan, reset koin yang digunakan
+     
     setCoinsToUse(0);
   }
 };
@@ -46,7 +46,7 @@ const toggleCoinUsage = () => {
 const updatePuskacoin = async (newCoins) => {
   setUserCoins(newCoins);
   
-  // Update Supabase
+   
   if (profile) {
     const { error } = await supabase
       .from('profiles')
@@ -58,7 +58,7 @@ const updatePuskacoin = async (newCoins) => {
       return;
     }
     
-    // Update local context state
+     
     setDbUser({
       ...profile,
       coins: newCoins
@@ -68,27 +68,27 @@ const updatePuskacoin = async (newCoins) => {
 
 const onCreateOrder = async () => {
   try {
-    // Hitung coins yang digunakan
+     
     const maxCoinAllowed = Math.floor(totalPrice * 0.1);
     const coinsToUse = Math.min(userCoins, maxCoinAllowed);
     
-    // Update puskacoin jika menggunakan coins
+     
     if (isUsingCoins && coinsToUse > 0) {
       await updatePuskacoin(userCoins - coinsToUse);
     }
     
-    // Buat order dan tunggu hasilnya dengan proper error handling
+     
     const newOrder = await createOrder(discountedPrice);
     
-    // Cek hasil order sebelum navigasi
+     
     if (newOrder) {
-      // Navigasi ke halaman yang sesuai setelah order berhasil dibuat
+       
       navigation.reset({
         index: 0,
         routes: [{ name: paymentMethod === 'QRIS' ? 'QRISPayment' : 'Orders' }],
       });
     } else {
-      // Handle kasus order gagal dibuat
+       
       Alert.alert("Gagal", "Tidak dapat membuat pesanan. Silakan coba lagi.");
     }
   } catch (error) {
