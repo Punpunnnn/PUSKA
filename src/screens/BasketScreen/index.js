@@ -12,17 +12,17 @@ const Basket = () => {
   const { basketDishes, totalPrice, clearBasket } = useBasketContext();
   const { createOrder, notes, updateNotes, paymentMethod, updatePaymentMethod } = useOrderContext();
   const navigation = useNavigation();
-  const { dbUser, setDbUser } = useAuthContext();
+  const { profile, setDbUser } = useAuthContext();
   const [userCoins, setUserCoins] = useState(0);
   const [coinsToUse, setCoinsToUse] = useState(0);
   const [isUsingCoins, setIsUsingCoins] = useState(false);
 
 useFocusEffect(
   useCallback(() => {
-    if (dbUser?.coins !== undefined && dbUser.coins !== userCoins) {
-      setUserCoins(dbUser.coins || 0);
+    if (profile?.coins !== undefined && profile.coins !== userCoins) {
+      setUserCoins(profile.coins || 0);
     }
-  }, [dbUser])
+  }, [profile])
 );
 
 const discountedPrice = useMemo(() => Math.max(0, totalPrice - coinsToUse), [totalPrice, coinsToUse]);
@@ -47,11 +47,11 @@ const updatePuskacoin = async (newCoins) => {
   setUserCoins(newCoins);
   
   // Update Supabase
-  if (dbUser) {
+  if (profile) {
     const { error } = await supabase
       .from('profiles')
       .update({ coins: newCoins })
-      .eq('id', dbUser.id);
+      .eq('id', profile.id);
       
     if (error) {
       console.error('Error updating coins:', error);
@@ -60,7 +60,7 @@ const updatePuskacoin = async (newCoins) => {
     
     // Update local context state
     setDbUser({
-      ...dbUser,
+      ...profile,
       coins: newCoins
     });
   }
