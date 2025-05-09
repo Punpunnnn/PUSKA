@@ -71,25 +71,16 @@ const onCreateOrder = async () => {
      
     const maxCoinAllowed = Math.floor(totalPrice * 0.1);
     const coinsToUse = Math.min(userCoins, maxCoinAllowed);
-    
-     
     if (isUsingCoins && coinsToUse > 0) {
       await updatePuskacoin(userCoins - coinsToUse);
     }
-    
-     
     const newOrder = await createOrder(discountedPrice);
-    
-     
     if (newOrder) {
        
       navigation.reset({
         index: 0,
         routes: [{ name: paymentMethod === 'QRIS' ? 'QRISPayment' : 'Orders' }],
       });
-    } else {
-       
-      Alert.alert("Gagal", "Tidak dapat membuat pesanan. Silakan coba lagi.");
     }
   } catch (error) {
     console.error("Error in onCreateOrder:", error);

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useBasketContext } from "./BasketContext";
 import { useAuthContext } from "./AuthContext";
 import { supabase } from "../lib/supabase";
+import { Alert } from "react-native";
 
 const OrderContext = createContext({});
 
@@ -11,7 +12,7 @@ const OrderContextProvider = ({ children }) => {
 
   const [orders, setOrders] = useState([]);
   const [notes, setNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('CASH');
+  const [paymentMethod, setPaymentMethod] = useState('');
 
   const updateNotes = (text) => setNotes(text);
   const updatePaymentMethod = (method) => setPaymentMethod(method);
@@ -35,7 +36,6 @@ const OrderContextProvider = ({ children }) => {
     setOrders(data);
   };
 
-   
   useEffect(() => {
     if (!dbUser?.id) return;
   
@@ -64,6 +64,10 @@ const OrderContextProvider = ({ children }) => {
 
   const createOrder = async (finalPrice) => {
     try {
+      if (!paymentMethod) {
+        Alert.alert('Pilih Metode Pembayaran', 'Pilih metode pembayaran terlebih dahulu.');
+        return;
+      }
       const safeDiscountedPrice = isNaN(finalPrice) ? totalPrice : finalPrice;
       const usedCoins = totalPrice - safeDiscountedPrice;
       const orderStatus = paymentMethod === 'QRIS' ? 'PENDING' : 'NEW';
@@ -107,7 +111,7 @@ const OrderContextProvider = ({ children }) => {
       }
       await clearBasket();  
       setNotes('');
-      setPaymentMethod('CASH');
+      setPaymentMethod('');
   
       return newOrder;
     } catch (error) {
@@ -116,7 +120,6 @@ const OrderContextProvider = ({ children }) => {
     }
   };
   
-
   const getOrder = async (orderId) => {
     try {
       const { data: order, error: orderError } = await supabase
@@ -176,7 +179,7 @@ const OrderContextProvider = ({ children }) => {
     }
   
     const updates = [];
-    if (status === 'CANCELLED' && orderData.used_coin > 0) {
+    if ((status === 'CANCELLED' || status === 'EXPIRED') && orderData.used_coin > 0) {
       updates.push(
         supabase.rpc('increment_coins', {
           user_id_param: orderData.user_id,
