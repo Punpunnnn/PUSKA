@@ -14,25 +14,18 @@ const AuthContextProvider = ({ children }) => {
   
   useEffect(() => {
     if (resettingPassword) {
-      console.log("Password reset flow active - clearing auth state");
       setAuthUser(null);
     }
   }, [resettingPassword]);
 
   useEffect(() => {
     if (resettingPassword) {
-      console.log("Skipping auth state setup - resetting password");
       setLoading(false);
       return;
     }
-
-    console.log("Setting up auth state listener");
-
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("Auth state changed:", _event, session ? "Session exists" : "No session");
 
       if (resettingPassword) {
-        console.log("Ignoring auth state change during password reset");
         return;
       }
 
@@ -40,14 +33,11 @@ const AuthContextProvider = ({ children }) => {
         try {
           const { data: { user }, error } = await supabase.auth.getUser();
           if (error) throw error;
-          console.log("Setting auth user:", user?.email);
           setAuthUser(user);
           if (_event === 'SIGNED_IN') setJustLoggedIn(true);
         } catch (error) {
-          console.error('Error getting user during auth state change:', error.message);
         }
       } else {
-        console.log("Clearing auth user");
         setAuthUser(null);
       }
       setLoading(false);
@@ -55,7 +45,6 @@ const AuthContextProvider = ({ children }) => {
 
     const getInitialUser = async () => {
       if (resettingPassword) {
-        console.log("Skipping initial user fetch - resetting password");
         setLoading(false);
         return;
       }
@@ -64,13 +53,10 @@ const AuthContextProvider = ({ children }) => {
         if (error) throw error;
 
         if (user) {
-          console.log("Initial user found:", user.email);
           setAuthUser(user);
         } else {
-          console.log("No initial user found");
         }
       } catch (error) {
-        console.log('Error fetching initial user:', error.message);
       } finally {
         setLoading(false);
       }
@@ -79,7 +65,6 @@ const AuthContextProvider = ({ children }) => {
     getInitialUser();
 
     return () => {
-      console.log("Cleaning up auth state listener");
       authListener?.subscription?.unsubscribe();
     };
   }, [resettingPassword]);

@@ -23,14 +23,13 @@ const QRISPaymentScreen = () => {
   const [orderId, setOrderId] = useState(routeOrderId || '');
   const [totalAmount, setTotalAmount] = useState(routeTotalAmount || '');
   const [createdAt, setCreatedAt] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(300); // Default 5 minutes (300 seconds)
+  const [timeLeft, setTimeLeft] = useState(300);
   const [orderStatus, setOrderStatus] = useState('PENDING');
   const [paymentComplete, setPaymentComplete] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [setLoading] = useState(true);
   const [expirationTimeStamp, setExpirationTimeStamp] = useState(null);
   const { updateOrderStatus } = useOrderContext();
 
-  // Time limit in seconds
   const TIME_LIMIT = 300;
 
   useEffect(() => {
@@ -54,7 +53,7 @@ const QRISPaymentScreen = () => {
             setTotalAmount(data.total.toLocaleString());
             setOrderStatus(data.order_status);
             
-            // Calculate expiration timestamp (created_at + 5 minutes)
+             
             const expirationTime = new Date(orderCreatedAt.getTime() + TIME_LIMIT * 1000);
             setExpirationTimeStamp(expirationTime);
           }
@@ -76,7 +75,7 @@ const QRISPaymentScreen = () => {
             setTotalAmount(data.total.toLocaleString());
             setOrderStatus(data.order_status);
             
-            // Calculate expiration timestamp (created_at + 5 minutes)
+             
             const expirationTime = new Date(orderCreatedAt.getTime() + TIME_LIMIT * 1000);
             setExpirationTimeStamp(expirationTime);
           }
@@ -92,14 +91,14 @@ const QRISPaymentScreen = () => {
   }, [routeOrderId]);
 
   useEffect(() => {
-    // Update timer based on server-calculated expiration time
+     
     const updateCountdown = () => {
       if (!expirationTimeStamp) return;
       
       const now = new Date();
       const timeDiff = expirationTimeStamp - now;
       
-      // If expired
+       
       if (timeDiff <= 0) {
         setTimeLeft(0);
         if (orderStatus === 'PENDING') {
@@ -175,8 +174,8 @@ const QRISPaymentScreen = () => {
             handlePaymentSuccess(payload.new.order_status);
           } else if (payload.new.order_status === 'EXPIRED') {
             Alert.alert(
-              'Payment Expired',
-              'Your payment session has expired. Please try again.',
+              'Pembayaran Kedaluwarsa',
+              'Pembayaran Anda telah kedaluwarsa.',
               [
                 {
                   text: 'OK',
@@ -242,8 +241,8 @@ const QRISPaymentScreen = () => {
       await updateOrderStatus(orderId, 'EXPIRED');
       setOrderStatus('EXPIRED');
       Alert.alert(
-        'Payment Expired',
-        'Your payment session has expired. Please try again.',
+        'Pembayaran Kedaluwarsa',
+        'Pembayaran Anda telah kedaluwarsa.',
         [
           {
             text: 'OK',
@@ -293,58 +292,6 @@ const QRISPaymentScreen = () => {
     handlePaymentSuccess('NEW');
   };
 
-  const refreshPaymentStatus = async () => {
-    if (!orderId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('order_status, created_at')
-        .eq('id', orderId)
-        .single();
-      
-      if (error) throw error;
-      
-      if (data) {
-        // If status has changed
-        if (data.order_status !== orderStatus) {
-          setOrderStatus(data.order_status);
-          
-          if (data.order_status === 'NEW' || data.order_status === 'PAID') {
-            handlePaymentSuccess(data.order_status);
-          } else if (data.order_status === 'EXPIRED') {
-            Alert.alert(
-              'Payment Expired',
-              'Your payment session has expired. Please try again.',
-              [
-                {
-                  text: 'OK',
-                  onPress: () => {
-                    navigation.reset({
-                      index: 0,
-                      routes: [{ name: 'Orders' }],
-                    });
-                  },
-                },
-              ],
-              { cancelable: false }
-            );
-          }
-        }
-        
-        // Update created_at and expiration time
-        const orderCreatedAt = new Date(data.created_at);
-        setCreatedAt(orderCreatedAt);
-        
-        // Recalculate expiration timestamp
-        const expirationTime = new Date(orderCreatedAt.getTime() + TIME_LIMIT * 1000);
-        setExpirationTimeStamp(expirationTime);
-      }
-    } catch (error) {
-      console.error('Error refreshing payment status:', error);
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -384,7 +331,7 @@ const QRISPaymentScreen = () => {
               <Text style={styles.instructionItem}>2. Pindai kode QR di atas</Text>
               <Text style={styles.instructionItem}>3. Konfirmasi jumlah pembayaran</Text>
               <Text style={styles.instructionItem}>4. Selesaikan proses pembayaran di aplikasi Anda</Text>
-              <TouchableOpacity style={styles.button} onPress={refreshPaymentStatus}>
+              <TouchableOpacity style={styles.button} onPress={handlePaymentCallback}>
                 <Text style={styles.buttontext}>Cek Status Pembayaran</Text>
               </TouchableOpacity>
             </View>

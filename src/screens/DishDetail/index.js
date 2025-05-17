@@ -32,9 +32,7 @@ const DishDetailsScreen = () => {
   }, [id]);
 
   const onAddToBasket = async () => {
-    console.log('onAddToBasket called');
       await addDishToBasket(menu, quantity);
-      console.log('Item added to basket, navigating back');
       navigation.goBack();
   };
 

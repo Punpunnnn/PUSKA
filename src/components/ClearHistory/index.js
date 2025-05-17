@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Pressable, Text, Alert, StyleSheet, ActivityIndicator } from 'react-native';
 import { useOrderContext } from '../../context/OrderContext';  
 
@@ -12,20 +12,20 @@ const ClearHistoryButton = () => {
       "Apakah kamu yakin ingin menghapus riwayat pesanan ini? tindakan ini tidak dapat dikembalikan semula",
       [
         {
-          text: "Cancel",
+          text: "Batalkan",
           style: "cancel"
         },
         {
-          text: "Delete",
+          text: "Hapus",
           style: "destructive",
           onPress: async () => {
             setLoading(true);
             try {
               const success = await clearCompletedOrders();
               if (success) {
-                Alert.alert("Success", "All completed orders have been deleted.");
+                Alert.alert("Berhasil", "Riwayat pesanan berhasil dihapus.");
               } else {
-                Alert.alert("Error", "Failed to delete completed orders. Please try again.");
+                Alert.alert("Error", "Gagal menghapus riwayat pesanan. Coba lagi nanti.");
               }
             } catch (error) {
               console.error("Error clearing history:", error);

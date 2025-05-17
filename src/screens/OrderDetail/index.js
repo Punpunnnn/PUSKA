@@ -98,24 +98,24 @@ const onPay = () => {
 
   const handleCancelOrder = () => {
     Alert.alert(
-      "Cancel Order",
-      "Are you sure you want to cancel this order?",
+      "Batalkan Pesanan",
+      "Apakah kamu yakin ingin membatalkan pesanan ini? tindakan ini tidak dapat dikembalikan semula",
       [
         {
-          text: "No",
+          text: "Tidak",
           style: "cancel"
         },
         { 
-          text: "Yes", 
+          text: "Ya", 
           style: "destructive",
           onPress: async () => {
             try {
               setIsLoading(true);
               await updateOrderStatus(id, 'CANCELLED');
-              Alert.alert("Success", "Your order has been cancelled");
+              Alert.alert("Berhasil", "Pesanan berhasil dibatalkan");
               navigation.goBack();
             } catch (error) {
-              Alert.alert("Error", "Failed to cancel order");
+              Alert.alert("Error", "Pesanan gagal dibatalkan");
             } finally {
               setIsLoading(false);
             }
@@ -149,10 +149,9 @@ const onPay = () => {
       
       await ratingContext.getRatingByOrderId(id);
       setShowRatingModal(false);
-      Alert.alert("Success", "Your rating has been submitted");
+      Alert.alert("Berhasil", "Ulasan berhasil dikirim");
     } catch (error) {
-      console.error("Error submitting rating:", error);
-      Alert.alert("Error", "Failed to submit rating");
+      Alert.alert("Error", "Gagal mengirim ulasan");
     } finally {
       setIsLoading(false);
     }

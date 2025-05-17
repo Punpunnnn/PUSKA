@@ -1,4 +1,4 @@
-import React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import RootNavigator from './src/Navigation';
 import { NavigationContainer } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import AuthContextProvider from './src/context/AuthContext';
 import RatingContextProvider from './src/context/RatingContext';
 export default function App() {
   return (
+    <SafeAreaProvider>
     <AuthContextProvider>
     <NavigationContainer>
       <BasketContextProvider>
@@ -20,5 +21,6 @@ export default function App() {
       <StatusBar style="auto" />
     </NavigationContainer>
     </AuthContextProvider>
+    </SafeAreaProvider>
   );
 }

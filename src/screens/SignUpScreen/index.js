@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading] = useState(false);
   const navigation = useNavigation();  
 
@@ -65,13 +67,22 @@ const Signup = () => {
         style={styles.input}
       />
       <Text style={styles.subbab}>Password</Text>
+      <View style={styles.passwordContainer}>
       <TextInput
         placeholder="Masukkan kata sandi anda"
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
+        secureTextEntry={!showPassword}
         style={styles.input}
       />
+      <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.icon}>
+          <Ionicons
+            name={showPassword ? 'eye-off' : 'eye'}
+            size={20}
+            color="#8A1538"
+          />
+        </Pressable>
+    </View>
       <Pressable style={styles.button} onPress={handleSignUp} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
@@ -134,6 +145,11 @@ const styles = StyleSheet.create({
     color: '#333333',
     textAlign: 'center',
   },
+  icon: {
+  position: 'absolute',
+  top: 15,
+  right: 50,
+},
   button: {
     width: '80%',
     alignSelf: 'center',

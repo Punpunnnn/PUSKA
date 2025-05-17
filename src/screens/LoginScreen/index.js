@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, Alert, Image } from 'react-native';
 import { supabase } from '../../lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -31,13 +34,22 @@ const LoginScreen = ({ navigation }) => {
         style={styles.input}
       />
       <Text style={styles.subbab}>Password</Text>
+      <View style={styles.passwordContainer}>
       <TextInput
         placeholder="Masukkan kata sandi anda"
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
+        secureTextEntry={!showPassword}
         style={styles.input}
       />
+      <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.icon}>
+          <Ionicons
+            name={showPassword ? 'eye-off' : 'eye'}
+            size={20}
+            color="#8A1538"
+          />
+        </Pressable>
+    </View>
       <Text
         style={styles.passwordHint}
         onPress={() => navigation.navigate('ForgotPassword')}
@@ -104,6 +116,16 @@ const styles = StyleSheet.create({
     color: '#333333',
     textAlign: 'center',
   },
+  passwordContainer: {
+  width: '100%',
+  alignSelf: 'center',
+  position: 'relative',
+},
+icon: {
+  position: 'absolute',
+  top: 15,
+  right: 50,
+},
   button: {
     width: '80%',
     alignSelf: 'center',

@@ -22,9 +22,7 @@ export default {
         projectId: "aa15121b-0722-434f-90c7-04478c450b84"
       }
     },
-    runtimeVersion: {
-      policy: "appVersion"
-    },
+    runtimeVersion: "1.0.0",
     updates: {
       enabled: true,
       url: "https://u.expo.dev/aa15121b-0722-434f-90c7-04478c450b84", 

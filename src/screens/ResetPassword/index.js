@@ -63,7 +63,7 @@ const ResetPasswordScreen = ({ route, navigation }) => {
       <Text style={styles.description}>
         Kode OTP sudah dikirimkan ke email. cek ya!
       </Text>
-      <Text style={styles.subbab}>Email</Text>
+      <Text style={styles.subbab}>Kode OTP</Text>
       <TextInput
         placeholder="Masukkan kode OTP "
         value={otp}

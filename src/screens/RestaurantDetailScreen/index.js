@@ -7,6 +7,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { useBasketContext } from '../../context/BasketContext';
 import useRealtimeMenus from '../../hooks/useRealtimeMenus';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const RestaurantDetailScreen = () => {
     const [restaurant, setRestaurant] = useState(null);
@@ -95,9 +96,12 @@ const RestaurantDetailScreen = () => {
   }
 
     return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FCFCFC' }} edges={['top']}>
       <View style={styles.container}>
+        <View style={styles.headercontainer}>
+      <Header restaurant={restaurant} />
+      </View>
       <FlatList
-      ListHeaderComponent={() => <Header restaurant={restaurant} />}
       data={categories}
       renderItem={({ item: category }) => (
         <View style={styles.categoryContainer}>
@@ -109,7 +113,7 @@ const RestaurantDetailScreen = () => {
       )}
       keyExtractor={(item) => item.title}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 100 }}  
+      contentContainerStyle={{ paddingTop: 360, paddingBottom: 100 }}  
       />
       
       <Ionicons 
@@ -139,6 +143,7 @@ const RestaurantDetailScreen = () => {
         </Pressable>
       </View>
       </View>
+      </SafeAreaView>
       );
 };
 
@@ -150,11 +155,19 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         color: "#333333",
     },
+    headercontainer: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 2,
+      height: 360,
+    },
     IconContainer: {
         position: "absolute",
         top: 40,
         left: 10,
-        zIndex: 1,
+        zIndex: 3,
     },
     image: {
         width: "100%",

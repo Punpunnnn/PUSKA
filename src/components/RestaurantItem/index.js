@@ -13,7 +13,7 @@ const RestaurantItem = ({ restaurant, menus }) => {
   const fetchRatings = async () => {
      
     const result = await getRestaurantRatings(restaurant.id, false);
-    setServiceRating(result?.avgServiceRating);
+    setServiceRating(result?.summary?.avgServiceRating);
   };
 
   useEffect(() => {
@@ -34,7 +34,7 @@ const RestaurantItem = ({ restaurant, menus }) => {
           <Image source={{ uri: restaurant.image }} style={styles.image} />
 
           <View style={styles.column}>
-            {typeof serviceRating === 'number' && (
+            {serviceRating > 0 && (
               <View style={styles.rating}>
                 <Ionicons name="star" size={18} color="orange" />
                 <Text style={styles.fontRating}>

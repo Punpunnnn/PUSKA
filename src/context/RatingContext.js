@@ -76,57 +76,56 @@ export const RatingProvider = ({ children }) => {
   }, [fetchData]);
 
   const getRestaurantRatings = useCallback(async (restaurantId, forceRefresh = false) => {
-    if (!forceRefresh && ratingsCache[restaurantId]) {
-      return ratingsCache[restaurantId];
-    }
-    
-    const data = await fetchData(
-      supabase.from('ratings')
-        .select('*, users: user_id (id, full_name)')
-        .eq('restaurant_id', restaurantId)
-    );
-    
-    if (!data || data.length === 0) {
-      const emptyResult = { 
-        ratings: [], 
-        summary: { 
-          totalServiceRating: 0, 
-          totalFoodRating: 0, 
-          avgServiceRating: 0, 
-          avgFoodRating: 0, 
-          totalReviews: 0 
-        } 
-      };
-      
-      setRatingsCache(prev => ({...prev, [restaurantId]: emptyResult}));
-      return emptyResult;
-    }
+  if (!forceRefresh && ratingsCache[restaurantId]) {
+    return ratingsCache[restaurantId];
+  }
 
-    let totalServiceRating = 0;
-    let totalFoodRating = 0;
-    
-    data.forEach(rating => {
-      totalServiceRating += rating.service_rating;
-      totalFoodRating += rating.food_quality_rating;
-    });
-    
-    const totalReviews = data.length;
-    const summary = {
-      totalServiceRating,
-      totalFoodRating,
-      avgServiceRating: totalServiceRating / totalReviews || 0,
-      avgFoodRating: totalFoodRating / totalReviews || 0,
-      totalReviews
+  const data = await fetchData(
+    supabase.from('ratings')
+      .select('*, users: user_id (id, full_name)')
+      .eq('restaurant_id', restaurantId)
+  );
+
+  if (!data || data.length === 0) {
+    const emptyResult = { 
+      ratings: [], 
+      summary: { 
+        totalServiceRating: 0, 
+        totalFoodRating: 0, 
+        avgServiceRating: 0, 
+        avgFoodRating: 0, 
+        totalReviews: 0 
+      } 
     };
 
-    const results = { ratings: data, summary };
-    
-    setRatingsCache(prev => ({...prev, [restaurantId]: results}));
-    
-    return summary;
-  }, [fetchData, ratingsCache]);
+    setRatingsCache(prev => ({ ...prev, [restaurantId]: emptyResult }));
+    return emptyResult;
+  }
 
-   
+  let totalServiceRating = 0;
+  let totalFoodRating = 0;
+
+  data.forEach(rating => {
+    totalServiceRating += rating.service_rating;
+    totalFoodRating += rating.food_quality_rating;
+  });
+
+  const totalReviews = data.length;
+  const summary = {
+    totalServiceRating,
+    totalFoodRating,
+    avgServiceRating: totalServiceRating / totalReviews || 0,
+    avgFoodRating: totalFoodRating / totalReviews || 0,
+    totalReviews
+  };
+
+  const results = { ratings: data, summary };
+
+  setRatingsCache(prev => ({ ...prev, [restaurantId]: results }));
+
+  return results;
+}, [fetchData, ratingsCache]);
+
   const value = React.useMemo(() => ({
     isLoading,
     error,
