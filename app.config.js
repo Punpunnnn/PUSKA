@@ -5,15 +5,13 @@ export default {
     name: "PUSKA",
     slug: "UnsiKantin",
     scheme: "puska",
-    version: "1.0.0",
+    version: "1.0.1",
     orientation: "portrait",
     userInterfaceStyle: "light",
     icon: "./assets/icon.png",
     android: {
-      package: "com.anonymous.puska"
-    },
-    web: {
-      favicon: "./assets/favicon.png"
+      package: "com.anonymous.puska",
+      versionCode: 1,
     },
     extra: {
       supabaseUrl: process.env.SUPABASE_URL,

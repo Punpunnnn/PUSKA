@@ -76,12 +76,17 @@ const onCreateOrder = async () => {
     }
     const newOrder = await createOrder(discountedPrice);
     if (newOrder) {
-       
-      navigation.reset({
-        index: 0,
-        routes: [{ name: paymentMethod === 'QRIS' ? 'QRISPayment' : 'Orders' }],
-      });
-    }
+  navigation.reset({
+    index: 0,
+    routes: [{
+      name: paymentMethod === 'QRIS' ? 'QRISPayment' : 'Orders',
+      params: {
+        orderId: newOrder.id,
+        totalAmount: discountedPrice,
+      }
+    }],
+  });
+}
   } catch (error) {
     console.error("Error in onCreateOrder:", error);
     Alert.alert("Error", "Terjadi kesalahan saat membuat pesanan.");

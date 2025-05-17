@@ -11,68 +11,55 @@ const AuthContextProvider = ({ children }) => {
   const [justLoggedIn, setJustLoggedIn] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
   const profile = useRealtimeProfile(authUser?.id);
-  
+
   useEffect(() => {
     if (resettingPassword) {
       setAuthUser(null);
-    }
-  }, [resettingPassword]);
-
-  useEffect(() => {
-    if (resettingPassword) {
+      setDbUser(null);
       setLoading(false);
       return;
     }
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
 
-      if (resettingPassword) {
-        return;
-      }
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (resettingPassword) return;
 
-      if (session) {
-        try {
-          const { data: { user }, error } = await supabase.auth.getUser();
-          if (error) throw error;
-          setAuthUser(user);
-          if (_event === 'SIGNED_IN') setJustLoggedIn(true);
-        } catch (error) {
-        }
+      if (session?.user) {
+        setAuthUser(session.user);
+        if (_event === 'SIGNED_IN') setJustLoggedIn(true);
       } else {
         setAuthUser(null);
+        setDbUser(null);
       }
       setLoading(false);
     });
 
-    const getInitialUser = async () => {
-      if (resettingPassword) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) throw error;
+    const checkInitialSession = async () => {
+      if (resettingPassword) return;
 
-        if (user) {
-          setAuthUser(user);
-        } else {
-        }
-      } catch (error) {
-      } finally {
-        setLoading(false);
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        setAuthUser(session.user);
+      } else {
+        setAuthUser(null);
+        setDbUser(null);
       }
+      setLoading(false);
     };
-6
-    getInitialUser();
+
+    checkInitialSession();
 
     return () => {
       authListener?.subscription?.unsubscribe();
     };
   }, [resettingPassword]);
 
-   
   useEffect(() => {
     const fetchDbUser = async () => {
-      if (!authUser?.id) {
+      if (!authUser?.id || resettingPassword) {
         setDbUser(null);
         return;
       }
@@ -92,21 +79,26 @@ const AuthContextProvider = ({ children }) => {
     };
 
     fetchDbUser();
-  }, [authUser]);
+  }, [authUser, resettingPassword]);
+
+  const isLoggedIn = !!authUser && !resettingPassword;
+  const userReady = isLoggedIn && !!dbUser;
 
   return (
-    <AuthContext.Provider value={{
-      profile,
-      authUser,
-      dbUser,
-      setDbUser,
-      isLoggedIn: !!authUser && !resettingPassword,
-      loading,
-      justLoggedIn,
-      setJustLoggedIn,
-      resettingPassword,
-      setResettingPassword,
-    }}>
+    <AuthContext.Provider
+      value={{
+        profile,
+        authUser,
+        dbUser,
+        setDbUser,
+        isLoggedIn,
+        loading: loading || (isLoggedIn && !dbUser),
+        justLoggedIn,
+        setJustLoggedIn,
+        resettingPassword,
+        setResettingPassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

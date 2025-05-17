@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useAuthContext } from '../context/AuthContext';
 import AuthStack from './AuthStack';
 import AppStack from './AppStack';
@@ -13,22 +12,6 @@ const RootNavigator = () => {
     resettingPassword 
   } = useAuthContext();
 
-   
-   
-   
-   
-   
-   
-   
-   
-   
-
-   
-   
-   
-   
-
-   
   if (loading) {
     return <SplashScreen />;
   }
