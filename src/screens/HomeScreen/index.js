@@ -2,33 +2,64 @@ import { View, StyleSheet, FlatList, TextInput, Text } from 'react-native';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import RestaurantItem from '../../components/RestaurantItem';
 import useRealtimeRestaurant from '../../hooks/useRealtimeRestaurant';
-import useRealtimeAllMenus from '../../hooks/useRealtimeAllMenus';
 import { Ionicons } from '@expo/vector-icons';
 import { debounce } from 'lodash';
+import { useFocusEffect } from '@react-navigation/native';
+import { supabase } from '../../lib/supabase';
 
 export default function Homescreen() {
   const [restaurants, setRestaurants] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
-  const [filteredRestaurants, setFilteredRestaurants] = useState(restaurants);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useRealtimeRestaurant(setRestaurants, setIsLoading, setError);
-  useRealtimeAllMenus(setMenuItems, setIsLoading, setError);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchAllMenus = async () => {
+        setIsLoading(true);
+        const { data, error } = await supabase.from('menus').select('*');
+        if (error) {
+          setError(error.message);
+        } else {
+          setMenuItems(data);
+        }
+        setIsLoading(false);
+      };
+      fetchAllMenus();
+    }, [])
+  );
+
+  const sortedRestaurants = useMemo(() => {
+    if (!restaurants || !menuItems) return [];
+
+    return restaurants.slice().sort((a, b) => {
+      const aHasMenu = menuItems.some(menu => menu.restaurants_id === a.id);
+      const bHasMenu = menuItems.some(menu => menu.restaurants_id === b.id);
+
+      if (aHasMenu && bHasMenu) return a.title.localeCompare(b.title);
+      if (aHasMenu && !bHasMenu) return -1;
+      if (!aHasMenu && bHasMenu) return 1;
+      return a.title.localeCompare(b.title);
+    });
+  }, [restaurants, menuItems]);
 
   const handleSearch = useCallback((text) => {
     setSearchQuery(text);
+  }, []);
 
-    if (!text.trim()) {
-      setFilteredRestaurants(restaurants);
-      return;
-    }
+  const debouncedSearch = useMemo(() => debounce(handleSearch, 300), [handleSearch]);
 
-    const lowercaseQuery = text.toLowerCase();
-    const matchedByName = restaurants.filter(restaurant =>
+  const filteredRestaurants = useMemo(() => {
+    if (!searchQuery.trim()) return sortedRestaurants;
+
+    const lowercaseQuery = searchQuery.toLowerCase();
+
+    const matchedByName = sortedRestaurants.filter(restaurant =>
       restaurant?.title?.toLowerCase().includes(lowercaseQuery)
     );
+
     const matchedMenuItems = menuItems.filter(item => {
       const name = item?.name?.toLowerCase();
       return (
@@ -36,22 +67,21 @@ export default function Homescreen() {
         name.split(' ').some(word => word.startsWith(lowercaseQuery))
       );
     });
+
     const matchedRestaurantIds = [...new Set(matchedMenuItems.map(item => item.restaurants_id))];
-    const matchedByMenu = restaurants.filter(restaurant =>
+    const matchedByMenu = sortedRestaurants.filter(restaurant =>
       matchedRestaurantIds.includes(restaurant.id)
     );
+
     const combinedResults = [...matchedByName, ...matchedByMenu];
-    const uniqueResults = Array.from(new Map(combinedResults.map(item => [item.id, item])).values());
-    setFilteredRestaurants(uniqueResults);
-  }, [restaurants, menuItems]);
+    return Array.from(new Map(combinedResults.map(item => [item.id, item])).values());
+  }, [searchQuery, sortedRestaurants, menuItems]);
 
-  const debouncedSearch = useMemo(() => debounce(handleSearch, 300), [handleSearch]);
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredRestaurants(restaurants);
-    }
-  }, [restaurants, searchQuery]);
-
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   return (
     <View style={styles.page}>
@@ -97,7 +127,7 @@ export default function Homescreen() {
       
       <FlatList
         contentContainerStyle={{ padding:16 }}
-        data={filteredRestaurants}
+        data={isLoading ? [] : filteredRestaurants}
         renderItem={({ item }) => <RestaurantItem 
         restaurant={item}
         menus={menuItems.filter(menu => menu.restaurants_id === item.id)} />}

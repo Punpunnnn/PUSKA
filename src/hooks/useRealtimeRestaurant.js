@@ -18,7 +18,8 @@ const useRealtimeRestaurant = (setRestaurants, setIsLoading, setError) => {
         setIsLoading(true);
         const { data, error } = await supabase
           .from('restaurants')
-          .select('*');
+          .select('*')
+          .order('is_open', { ascending: false })  
 
         if (error) {  
           setError(error.message);  

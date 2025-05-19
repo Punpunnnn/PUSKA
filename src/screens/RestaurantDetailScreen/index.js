@@ -1,47 +1,22 @@
-import {View, FlatList, StyleSheet, ActivityIndicator, Pressable, Text} from 'react-native';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, FlatList, StyleSheet, ActivityIndicator, Pressable, Text } from 'react-native';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import DishListItem from '../../components/DishListItem';
 import Header from './header';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { useBasketContext } from '../../context/BasketContext';
-import useRealtimeMenus from '../../hooks/useRealtimeMenus';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const RestaurantDetailScreen = () => {
-    const [restaurant, setRestaurant] = useState(null);
+  const [restaurant, setRestaurant] = useState(null);
   const [menus, setMenus] = useState([]);
   const [categories, setCategories] = useState([]);
-  const { setRestaurant: setBasketRestaurant, basket, basketDishes } = useBasketContext();
+  const { setRestaurant: setBasketRestaurant, basketDishes } = useBasketContext();
   const [menuRatings, setMenuRatings] = useState([]);
   const route = useRoute();
   const navigation = useNavigation();
   const id = route.params.id;
-
-  useEffect(() => {
-    const fetchMenuRatings = async () => {
-      const { data, error } = await supabase
-        .from('avg_menu_ratings')
-        .select('*');
-  
-      if (error) {
-        console.error('Gagal fetch avg menu ratings:', error.message);
-      } else {
-        setMenuRatings(data);
-      }
-    };
-  
-    fetchMenuRatings();
-  }, []);
-  
-  const ratingsLookup = useMemo(() => {
-    const lookup = {};
-    menuRatings.forEach((rating) => {
-      lookup[rating.menus_id] = rating.avg_rating;
-    });
-    return lookup;
-  }, [menuRatings]);   
 
   const fetchRestaurant = useCallback(async () => {
     if (!id) return;
@@ -61,11 +36,52 @@ const RestaurantDetailScreen = () => {
     setRestaurant(data);
   }, [id, setBasketRestaurant]);
 
-   
-  useRealtimeMenus(setMenus, id);
+  const fetchMenus = useCallback(async () => {
+    if (!id) return;
 
-   
-  useEffect(() => {
+    const { data, error } = await supabase
+      .from('menus')
+      .select('*')
+      .eq('restaurants_id', id);
+
+    if (error) {
+      console.error('Gagal fetch menus:', error.message);
+      return;
+    }
+
+    setMenus(data);
+  }, [id]);
+
+  const fetchMenuRatings = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('avg_menu_ratings')
+      .select('*');
+
+    if (error) {
+      console.error('Gagal fetch avg menu ratings:', error.message);
+      return;
+    }
+
+    setMenuRatings(data);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchRestaurant();
+      fetchMenus();
+      fetchMenuRatings();
+    }, [fetchRestaurant, fetchMenus, fetchMenuRatings])
+  );
+
+  const ratingsLookup = useMemo(() => {
+    const lookup = {};
+    menuRatings.forEach((rating) => {
+      lookup[rating.menus_id] = rating.avg_rating;
+    });
+    return lookup;
+  }, [menuRatings]);
+
+  useMemo(() => {
     const categorized = menus.reduce((acc, menu) => {
       const category = menu.category || "Other";
       if (!acc[category]) acc[category] = [];
@@ -81,12 +97,6 @@ const RestaurantDetailScreen = () => {
     setCategories(categoriesArray);
   }, [menus]);
 
-   
-  useEffect(() => {
-    fetchRestaurant();
-  }, [fetchRestaurant]);
-
-   
   useEffect(() => {
     setBasketRestaurant(restaurant);
   }, [restaurant, setBasketRestaurant]);
@@ -94,7 +104,6 @@ const RestaurantDetailScreen = () => {
   if (!restaurant) {
     return <ActivityIndicator size="large" color="black" />;
   }
-
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#FCFCFC' }} edges={['top']}>
       <View style={styles.container}>

@@ -58,7 +58,7 @@ const RestaurantItem = ({ restaurant, menus }) => {
 
         {noMenu && (
         <View style={styles.overlay}>
-          <Text style={styles.closedText}>BELUM ADA MENU</Text>
+          <Text style={styles.closedText}>BELUM TERSEDIA</Text>
         </View>
        )}
       </View>
